@@ -1,0 +1,12 @@
+{
+  "name": "@airp/ai-engine",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "python -m app.main",
+    "build": "echo \"python service build skipped\"",
+    "lint": "echo \"lint not configured\"",
+    "test": "echo \"test not configured\""
+  }
+}
+
