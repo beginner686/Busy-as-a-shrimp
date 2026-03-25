@@ -1,0 +1,17 @@
+{
+  "name": "@airp/database",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "echo \"database package build skipped\"",
+    "lint": "echo \"lint not configured\"",
+    "test": "echo \"test not configured\""
+  },
+  "devDependencies": {
+    "prisma": "^5.20.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.20.0"
+  }
+}
+

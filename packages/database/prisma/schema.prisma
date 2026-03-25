@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  service
+  resource
+  both
+}
+
+enum MemberLevel {
+  free
+  monthly
+  yearly
+  lifetime
+}
+
+enum UserStatus {
+  active
+  banned
+  frozen
+}
+
+enum ResourceType {
+  skill
+  location
+  account
+  time
+}
+
+enum ResourceStatus {
+  pending
+  active
+  inactive
+  rejected
+}
+
+enum MatchStatus {
+  pushed
+  viewed
+  confirmed
+  done
+  invalid
+}
+
+enum CommissionStatus {
+  pending
+  active
+  paid
+  invalid
+}
+
+enum ContentType {
+  card
+  post
+  video_script
+  poster
+}
+
+enum ContentStatus {
+  draft
+  pending
+  published
+  rejected
+}
+
+model User {
+  userId        BigInt      @id @default(autoincrement()) @map("user_id")
+  phoneHash     String      @db.VarChar(64) @map("phone_hash")
+  role          UserRole
+  city          String?     @db.VarChar(50)
+  district      String?     @db.VarChar(100)
+  memberLevel   MemberLevel @default(free) @map("member_level")
+  memberExpire  DateTime?   @map("member_expire")
+  status        UserStatus  @default(active)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  resources     Resource[]
+  contents      Content[]
+
+  @@map("users")
+}
+
+model Resource {
+  resourceId    BigInt         @id @default(autoincrement()) @map("resource_id")
+  userId        BigInt         @map("user_id")
+  resourceType  ResourceType   @map("resource_type")
+  tags          Json
+  areaCode      String?        @db.VarChar(20) @map("area_code")
+  priceRange    Json?          @map("price_range")
+  status        ResourceStatus @default(pending)
+  verifiedAt    DateTime?      @map("verified_at")
+  lastUpdate    DateTime?      @map("last_update")
+  user          User           @relation(fields: [userId], references: [userId])
+  matches       Match[]
+
+  @@index([userId], map: "idx_resource_user_id")
+  @@map("resources")
+}
+
+model Match {
+  matchId       BigInt      @id @default(autoincrement()) @map("match_id")
+  needId        BigInt      @map("need_id")
+  resourceId    BigInt      @map("resource_id")
+  matchScore    Decimal     @db.Decimal(5, 2) @map("match_score")
+  status        MatchStatus
+  pushTime      DateTime?   @map("push_time")
+  feedback      Int?        @db.TinyInt
+  resource      Resource    @relation(fields: [resourceId], references: [resourceId])
+
+  @@index([needId], map: "idx_match_need_id")
+  @@index([resourceId], map: "idx_match_resource_id")
+  @@map("matches")
+}
+
+model CaptainCommission {
+  commissionId     BigInt           @id @default(autoincrement()) @map("commission_id")
+  captainId        BigInt           @map("captain_id")
+  orderId          BigInt           @map("order_id")
+  orderAmount      Decimal          @db.Decimal(10, 2) @map("order_amount")
+  commissionRate   Decimal          @db.Decimal(5, 2) @map("commission_rate")
+  commissionAmount Decimal          @db.Decimal(10, 2) @map("commission_amount")
+  status           CommissionStatus
+  confirmAt        DateTime?        @map("confirm_at")
+
+  @@index([captainId], map: "idx_commission_captain_id")
+  @@map("captain_commissions")
+}
+
+model InviteRecord {
+  recordId      BigInt    @id @default(autoincrement()) @map("record_id")
+  inviterId     BigInt    @map("inviter_id")
+  inviteeId     BigInt    @map("invitee_id")
+  inviteCode    String    @db.VarChar(8) @map("invite_code")
+  isValid       Boolean   @default(true) @map("is_valid")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([inviterId], map: "idx_invite_inviter_id")
+  @@index([inviteeId], map: "idx_invite_invitee_id")
+  @@map("invite_records")
+}
+
+model Content {
+  contentId       BigInt        @id @default(autoincrement()) @map("content_id")
+  userId          BigInt        @map("user_id")
+  contentType     ContentType   @map("content_type")
+  contentBody     String        @db.Text @map("content_body")
+  targetPlatform  String        @db.VarChar(50) @map("target_platform")
+  status          ContentStatus @default(draft)
+  stats           Json?
+  publishedAt     DateTime?     @map("published_at")
+  user            User          @relation(fields: [userId], references: [userId])
+
+  @@index([userId], map: "idx_content_user_id")
+  @@map("contents")
+}
+
