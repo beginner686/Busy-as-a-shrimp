@@ -16,7 +16,7 @@ export class ResourceService {
       {
         resourceId: 20001,
         resourceType: "skill",
-        tags: ["短视频", "探店"],
+        tags: ["short-video", "store-visit"],
         status: "active"
       }
     ];
@@ -38,7 +38,6 @@ export class ResourceService {
   }
 
   tags() {
-    return ["地区", "技能", "时间", "规模"];
+    return ["region", "skill", "time", "scale"];
   }
 }
-

@@ -1,23 +1,23 @@
-﻿{
-    "name":  "ai-resource-platform",
-    "private":  true,
-    "version":  "0.1.0",
-    "description":  "AI resource sharing platform monorepo scaffold",
-    "scripts":  {
-                    "dev":  "pnpm -r --parallel dev",
-                    "build":  "pnpm -r build",
-                    "lint":  "pnpm -r lint",
-                    "test":  "pnpm -r test",
-                    "infra:up":  "docker compose up -d",
-                    "infra:up:all":  "docker compose --profile app up -d",
-                    "infra:down":  "docker compose down",
-                    "dev:api":  "pnpm --filter @airp/api dev",
-                    "dev:web":  "pnpm --filter @airp/web dev",
-                    "dev:admin":  "pnpm --filter @airp/admin dev",
-                    "dev:ai":  "pnpm --filter @airp/ai-engine dev"
-                },
-    "engines":  {
-                    "node":  "\u003e=20.10.0",
-                    "pnpm":  "\u003e=9.0.0"
-                }
+{
+  "name": "ai-resource-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI resource sharing platform monorepo scaffold",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "infra:up": "docker compose up -d",
+    "infra:up:all": "docker compose --profile app up -d",
+    "infra:down": "docker compose down",
+    "dev:api": "pnpm --filter @airp/api dev",
+    "dev:web": "pnpm --filter @airp/web dev",
+    "dev:admin": "pnpm --filter @airp/admin dev",
+    "dev:ai": "pnpm --filter @airp/ai-engine dev"
+  },
+  "engines": {
+    "node": ">=20.10.0",
+    "pnpm": ">=9.0.0"
+  }
 }
