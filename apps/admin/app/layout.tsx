@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "AI资源共享平台 - 管理后台",
-  description: "审核与运营后台"
+  title: "AI Resource Platform - Admin Console",
+  description: "Operations and moderation console"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -15,4 +15,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
