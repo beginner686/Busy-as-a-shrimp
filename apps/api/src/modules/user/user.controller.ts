@@ -7,6 +7,7 @@ import { CurrentUser } from "./decorators/current-user.decorator";
 import {
   LoginDto,
   RegisterDto,
+  SendCodeDto,
   UpdateRoleDto,
   UpdateUserInfoDto,
   VerifyIdentityDto
@@ -20,6 +21,12 @@ interface ICurrentUser {
 @Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post("send-code")
+  async sendCode(@Body() payload: SendCodeDto) {
+    const result = await this.userService.sendCode(payload);
+    return ok(result, result.message);
+  }
 
   @Post("register")
   async register(@Body() payload: RegisterDto) {

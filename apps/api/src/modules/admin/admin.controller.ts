@@ -1,27 +1,62 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
+import { AdminAuthGuard } from "./auth/admin-auth.guard";
+import { AdminAuthService } from "./auth/admin-auth.service";
+import { Public } from "./auth/public.decorator";
 import { AdminService } from "./admin.service";
+import {
+  AdminLoginDto,
+  PublishAnnouncementDto,
+  QueryResourcesDto,
+  QueryUsersDto,
+  ReviewResourceDto,
+  UpdateCaptainLevelDto,
+  UpdateUserStatusDto
+} from "./dto/admin.dto";
 
+@UseGuards(AdminAuthGuard)
 @Controller("admin")
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly adminAuthService: AdminAuthService
+  ) {}
+
+  @Public()
+  @Post("login")
+  login(@Body() payload: AdminLoginDto) {
+    return ok(this.adminAuthService.login(payload), "Admin login success");
+  }
+
+  @Get("me")
+  me(@Req() request: { admin?: unknown }) {
+    return ok(request.admin ?? null);
+  }
 
   @Get("users")
-  users() {
-    return ok(this.adminService.users());
+  users(@Query() query: QueryUsersDto) {
+    return ok(this.adminService.users(query));
+  }
+
+  @Put("users/:id/status")
+  updateUserStatus(@Param("id") id: string, @Body() payload: UpdateUserStatusDto) {
+    return ok(
+      this.adminService.updateUserStatus(Number(id), payload.status),
+      "User status updated"
+    );
   }
 
   @Get("resources")
-  resources() {
-    return ok(this.adminService.resources());
+  resources(@Query() query: QueryResourcesDto) {
+    return ok(this.adminService.resources(query));
   }
 
   @Put("resources/:id")
-  reviewResource(
-    @Param("id") id: string,
-    @Body("decision") decision: "approve" | "reject"
-  ) {
-    return ok(this.adminService.reviewResource(Number(id), decision), "审核完成");
+  reviewResource(@Param("id") id: string, @Body() payload: ReviewResourceDto) {
+    return ok(
+      this.adminService.reviewResource(Number(id), payload.decision, payload.reason),
+      "Resource review completed"
+    );
   }
 
   @Get("stats")
@@ -30,8 +65,16 @@ export class AdminController {
   }
 
   @Post("announce")
-  announce(@Body("content") content: string) {
-    return ok(this.adminService.announce(content), "公告已发布");
+  announce(@Body() payload: PublishAnnouncementDto) {
+    return ok(
+      this.adminService.announce(payload.content, payload.publisher),
+      "Announcement published"
+    );
+  }
+
+  @Get("announcements")
+  announcements() {
+    return ok(this.adminService.announcements());
   }
 
   @Get("captain/ranking")
@@ -40,10 +83,10 @@ export class AdminController {
   }
 
   @Put("captain/:id/level")
-  updateCaptainLevel(
-    @Param("id") id: string,
-    @Body("level") level: "normal" | "advanced" | "gold"
-  ) {
-    return ok(this.adminService.updateCaptainLevel(Number(id), level), "团长等级已更新");
+  updateCaptainLevel(@Param("id") id: string, @Body() payload: UpdateCaptainLevelDto) {
+    return ok(
+      this.adminService.updateCaptainLevel(Number(id), payload.level),
+      "Captain level updated"
+    );
   }
 }

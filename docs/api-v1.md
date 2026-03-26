@@ -35,10 +35,14 @@ Base URL: `/api/v1`
 
 ## 管理后台模块
 
+- `POST /admin/login`
+- `GET /admin/me`
 - `GET /admin/users`
+- `PUT /admin/users/:id/status`
 - `GET /admin/resources`
 - `PUT /admin/resources/:id`
 - `GET /admin/stats`
 - `POST /admin/announce`
+- `GET /admin/announcements`
 - `GET /admin/captain/ranking`
 - `PUT /admin/captain/:id/level`

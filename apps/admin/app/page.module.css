@@ -1,0 +1,282 @@
+.page {
+  min-height: 100vh;
+  padding: 28px;
+  color: #f6f7ff;
+  background:
+    radial-gradient(1300px 700px at -10% -30%, rgba(96, 70, 255, 0.45), transparent 65%),
+    radial-gradient(900px 520px at 110% 0%, rgba(0, 187, 255, 0.28), transparent 60%),
+    linear-gradient(180deg, #0f1231 0%, #0a0d20 100%);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: 0.3px;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: #b7c1ff;
+}
+
+.sessionInfo {
+  margin: 8px 0 0;
+  color: #8de6ff;
+  font-size: 13px;
+}
+
+.topActions {
+  display: flex;
+  gap: 8px;
+}
+
+.refreshBtn {
+  height: 40px;
+  border: 1px solid #6f82ff;
+  border-radius: 12px;
+  padding: 0 16px;
+  color: #f8f9ff;
+  background: rgba(111, 130, 255, 0.15);
+  cursor: pointer;
+}
+
+.logoutBtn {
+  height: 40px;
+  border: 1px solid rgba(255, 123, 145, 0.7);
+  border-radius: 12px;
+  padding: 0 16px;
+  color: #ffd6df;
+  background: rgba(255, 92, 123, 0.16);
+  cursor: pointer;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.statCard {
+  border: 1px solid rgba(130, 148, 255, 0.35);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(20, 28, 73, 0.58);
+}
+
+.statLabel {
+  display: block;
+  color: #97a6f7;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.statValue {
+  display: block;
+  margin-top: 8px;
+  font-size: 28px;
+}
+
+.panel {
+  border: 1px solid rgba(128, 145, 255, 0.34);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(16, 22, 58, 0.72);
+  backdrop-filter: blur(4px);
+  margin-bottom: 16px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panelHeader h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filters select,
+.table select,
+.formRow input,
+.textarea {
+  border: 1px solid rgba(155, 170, 255, 0.34);
+  background: rgba(10, 15, 42, 0.84);
+  color: #eff2ff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 88px;
+  resize: vertical;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid rgba(118, 139, 255, 0.2);
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.table th {
+  color: #9fb0ff;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.active {
+  background: rgba(0, 199, 120, 0.2);
+  color: #55ffb5;
+}
+
+.pending {
+  background: rgba(255, 179, 0, 0.2);
+  color: #ffd576;
+}
+
+.rejected,
+.banned {
+  background: rgba(255, 86, 111, 0.2);
+  color: #ff9ead;
+}
+
+.frozen,
+.inactive {
+  background: rgba(145, 163, 255, 0.2);
+  color: #c4ceff;
+}
+
+.actionInline {
+  display: flex;
+  gap: 6px;
+}
+
+.actionInline button,
+.panelHeader button,
+.formRow button {
+  border: 1px solid rgba(124, 144, 255, 0.45);
+  border-radius: 10px;
+  padding: 6px 10px;
+  color: #f6f8ff;
+  background: rgba(96, 123, 255, 0.18);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.panelSplit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.formRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.formRow input {
+  flex: 1;
+}
+
+.announcementList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.announcementList li {
+  border: 1px solid rgba(129, 148, 255, 0.24);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(7, 12, 35, 0.75);
+}
+
+.announcementList p {
+  margin: 0 0 6px;
+  line-height: 1.35;
+}
+
+.announcementList span {
+  color: #9faee7;
+  font-size: 12px;
+}
+
+.loading,
+.error,
+.message {
+  margin: 8px 0 14px;
+}
+
+.error {
+  color: #ff9fa8;
+}
+
+.message {
+  color: #94ffc9;
+}
+
+@media (max-width: 1100px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panelSplit {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 14px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
