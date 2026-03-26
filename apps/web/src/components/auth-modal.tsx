@@ -23,6 +23,21 @@ export function AuthModal() {
     }
   }, [isAuthModalOpen]);
 
+  useEffect(() => {
+    if (!isAuthModalOpen) {
+      return;
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeAuthModal();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [closeAuthModal, isAuthModalOpen]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);

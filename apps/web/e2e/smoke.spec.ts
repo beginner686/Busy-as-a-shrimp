@@ -1,10 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("login page smoke", async ({ page }) => {
-  await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "手机号登录" })).toBeVisible();
-  await page.getByRole("button", { name: "登录" }).click();
-  await expect(page.getByText("登录结果").or(page.getByText("登录失败"))).toBeVisible();
+test("auth modal smoke", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "登录/注册" }).first().click();
+  await expect(page.getByRole("heading", { name: "登录" })).toBeVisible();
+  await page.getByRole("button", { name: "立即登录" }).click();
+  await expect(
+    page.getByRole("button", { name: "切换账号" }).or(page.getByText("登录失败"))
+  ).toBeVisible();
 });
 
 test("resource list page smoke", async ({ page }) => {
