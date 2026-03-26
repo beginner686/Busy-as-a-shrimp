@@ -1,4 +1,4 @@
-import type { LoginDto, UpdateRoleDto, UpdateUserInfoDto } from "@airp/api-types";
+import type { LoginDto, RegisterDto, UpdateRoleDto, UpdateUserInfoDto } from "@airp/api-types";
 import type { HttpClientLike } from "./http";
 
 export interface UserInfo {
@@ -13,8 +13,16 @@ export interface LoginResult {
   loginType: "phone" | "wechat";
 }
 
+export interface RegisterResult {
+  registered: boolean;
+  userId: number;
+}
+
 export function createUserApi(client: Pick<HttpClientLike, "get" | "post" | "put">) {
   return {
+    register(payload: RegisterDto): Promise<RegisterResult> {
+      return client.post<RegisterResult>("/user/register", { body: payload });
+    },
     login(payload: LoginDto): Promise<LoginResult> {
       return client.post<LoginResult>("/user/login", { body: payload });
     },

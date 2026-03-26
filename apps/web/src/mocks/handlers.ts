@@ -1,6 +1,16 @@
 import { http, HttpResponse } from "msw";
 
 export const handlers = [
+  http.post("*/api/v1/user/register", async () => {
+    return HttpResponse.json({
+      success: true,
+      message: "注册成功",
+      data: {
+        registered: true,
+        userId: 10086
+      }
+    });
+  }),
   http.post("*/api/v1/user/login", async () => {
     return HttpResponse.json({
       success: true,

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import React from "react";
+import { AuthProvider } from "../src/auth/auth-context";
+import { AuthModal } from "../src/components/auth-modal";
 import { MswProvider } from "../src/components/msw-provider";
+import { TopNav } from "../src/components/top-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,30 +15,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <body>
-        <MswProvider />
-        <div className="app-shell">
-          <nav className="top-nav glass-card">
-            <Link href="/" className="nav-link">
-              首页
-            </Link>
-            <Link href="/login" className="nav-link">
-              登录
-            </Link>
-            <Link href="/profile" className="nav-link">
-              个人资料
-            </Link>
-            <Link href="/resource/new" className="nav-link">
-              新建资源
-            </Link>
-            <Link href="/resource/list" className="nav-link">
-              资源列表
-            </Link>
-            <Link href="/match/list" className="nav-link">
-              匹配列表
-            </Link>
-          </nav>
-          {children}
-        </div>
+        <AuthProvider>
+          <MswProvider />
+          <div className="app-shell">
+            <TopNav />
+            {children}
+          </div>
+          <AuthModal />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -23,7 +23,7 @@
     "infra:up:all": "docker compose --profile app up -d",
     "infra:down": "docker compose down",
     "dev:api": "corepack pnpm --filter @airp/api dev",
-    "dev:web": "corepack pnpm --filter @airp/web dev",
+    "dev:web": "node scripts/dev-web-open.mjs",
     "dev:admin": "corepack pnpm --filter @airp/admin dev",
     "dev:ai": "corepack pnpm --filter @airp/ai-engine dev",
     "prepare": "husky"

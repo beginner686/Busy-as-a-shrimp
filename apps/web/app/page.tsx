@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AuthEntryButton } from "../src/components/auth-entry-button";
 import { loadClientEnv } from "../src/env";
 
 function getEnvSummary(): string {
@@ -27,9 +28,7 @@ export default function HomePage() {
         <section className="glass-card item">
           <h3 className="state-title">快速入口</h3>
           <div className="button-row">
-            <Link href="/login" className="btn btn-secondary">
-              去登录
-            </Link>
+            <AuthEntryButton className="btn btn-secondary" label="登录/注册" />
             <Link href="/resource/new" className="btn btn-secondary">
               上传资源
             </Link>
