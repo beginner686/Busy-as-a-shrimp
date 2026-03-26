@@ -1,6 +1,11 @@
 import { UserRole } from "@prisma/client";
 import { IsMobilePhone, IsString, Length, IsOptional, IsEnum } from "class-validator";
 
+export class SendCodeDto {
+  @IsMobilePhone("zh-CN")
+  phone!: string;
+}
+
 export class RegisterDto {
   @IsMobilePhone("zh-CN")
   phone!: string;

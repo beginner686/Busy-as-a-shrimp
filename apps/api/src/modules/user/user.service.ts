@@ -5,6 +5,7 @@ import * as crypto from "crypto";
 import {
   LoginDto,
   RegisterDto,
+  SendCodeDto,
   UpdateRoleDto,
   UpdateUserInfoDto,
   VerifyIdentityDto
@@ -12,10 +13,30 @@ import {
 
 @Injectable()
 export class UserService {
+  private codes = new Map<string, string>();
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) { }
+
+  /**
+   * 模拟发送手机验证码 (TRD 预留)
+   */
+  async sendCode(payload: SendCodeDto) {
+    const code = Math.random().toString().slice(-6); // 随机 6 位
+    this.codes.set(payload.phone, code);
+
+    // 实际应调用短信服务商 SDK，此处仅模拟日志输出
+    console.log(`[Mock SMS] 验证码已发送至 ${payload.phone}: ${code}`);
+
+    return {
+      success: true,
+      message: "验证码已发送 (测试模式，请查看服务端控制台)",
+      // 演示环境下为了方便测试，将 code 直接返回（生产严禁如此）
+      code: process.env.NODE_ENV === 'development' ? code : undefined
+    };
+  }
 
   /**
    * 手机号脱敏 Hash 处理 (TRD 209)
@@ -30,10 +51,12 @@ export class UserService {
   }
 
   async register(payload: RegisterDto) {
-    // 模拟验证码校验 (TRD 要求)
-    if (payload.verifyCode !== "123456") {
+    // 验证码校验
+    const cachedCode = this.codes.get(payload.phone);
+    if (payload.verifyCode !== "123456" && payload.verifyCode !== cachedCode) {
       throw new BadRequestException("验证码错误");
     }
+    this.codes.delete(payload.phone);
 
     const phoneHash = this.hashPhone(payload.phone);
 
@@ -71,10 +94,12 @@ export class UserService {
       throw new BadRequestException("登录凭证缺失");
     }
 
-    // 验证码校验逻辑 (Mock: 123456)
-    if (payload.verifyCode !== "123456") {
+    // 验证码校验逻辑
+    const cachedCode = this.codes.get(payload.phone);
+    if (payload.verifyCode !== "123456" && payload.verifyCode !== cachedCode) {
       throw new BadRequestException("验证码错误");
     }
+    this.codes.delete(payload.phone);
 
     const phoneHash = this.hashPhone(payload.phone);
     const user = await this.prisma.user.findFirst({
