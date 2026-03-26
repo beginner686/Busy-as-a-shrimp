@@ -10,4 +10,9 @@ coverage
 __pycache__
 .pytest_cache
 .venv
+*.tsbuildinfo
+.husky/_
+test-results
+playwright-report
+blob-report
 
