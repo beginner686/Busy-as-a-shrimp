@@ -1,25 +1,50 @@
-export interface RegisterDto {
-  phone: string;
-  verifyCode: string;
+import { UserRole } from "@prisma/client";
+import { IsMobilePhone, IsString, Length, IsOptional, IsEnum } from "class-validator";
+
+export class RegisterDto {
+  @IsMobilePhone("zh-CN")
+  phone!: string;
+
+  @IsString()
+  @Length(4, 6)
+  verifyCode!: string; // 手机验证码
 }
 
-export interface LoginDto {
+export class LoginDto {
+  @IsMobilePhone("zh-CN")
+  @IsOptional()
   phone?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(4, 6)
   verifyCode?: string;
-  wechatCode?: string;
+
+  @IsString()
+  @IsOptional()
+  wechatCode?: string; // 微信授权码
 }
 
-export interface VerifyIdentityDto {
-  name: string;
-  idNumber: string;
+export class VerifyIdentityDto {
+  @IsString()
+  name!: string;
+
+  @IsString()
+  @Length(15, 18)
+  idNumber!: string; // 实名校验字段
 }
 
-export interface UpdateUserInfoDto {
+export class UpdateUserInfoDto {
+  @IsString()
+  @IsOptional()
   city?: string;
+
+  @IsString()
+  @IsOptional()
   district?: string;
 }
 
-export interface UpdateRoleDto {
-  role: "service" | "resource" | "both";
+export class UpdateRoleDto {
+  @IsEnum(UserRole)
+  role!: UserRole;
 }
-
