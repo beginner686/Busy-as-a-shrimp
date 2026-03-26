@@ -11,4 +11,3 @@ export function ok<T>(data: T, message = "ok"): ApiResponse<T> {
     data
   };
 }
-

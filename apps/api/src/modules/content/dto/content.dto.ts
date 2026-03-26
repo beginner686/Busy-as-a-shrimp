@@ -5,4 +5,3 @@ export interface CreateContentDto {
   targetPlatform: string;
   prompt: string;
 }
-

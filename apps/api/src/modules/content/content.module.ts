@@ -7,4 +7,3 @@ import { ContentService } from "./content.service";
   providers: [ContentService]
 })
 export class ContentModule {}
-

@@ -25,4 +25,3 @@ import { ComplianceModule } from "./modules/compliance/compliance.module";
   ]
 })
 export class AppModule {}
-

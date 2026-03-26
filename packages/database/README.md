@@ -16,4 +16,3 @@
 1. 设置 `DATABASE_URL`
 2. 执行 `pnpm --filter @airp/database prisma generate`
 3. 执行 `pnpm --filter @airp/database prisma db push`
-

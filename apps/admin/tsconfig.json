@@ -7,6 +7,12 @@
     "allowJs": false,
     "incremental": true,
     "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@airp/http-client": ["../../packages/http-client/src/index.ts"],
+      "@airp/api-types": ["../../packages/api-types/src/index.ts"]
+    },
     "plugins": [
       {
         "name": "next"

@@ -7,4 +7,3 @@ import { CaptainService } from "./captain.service";
   providers: [CaptainService]
 })
 export class CaptainModule {}
-

@@ -1,6 +1,5 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -36,7 +35,6 @@ export default function AuthPage() {
   }, []);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
     defaultValues: {
       phone: "13800000000",
       verifyCode: "1234"
@@ -44,22 +42,34 @@ export default function AuthPage() {
   });
 
   async function onSubmit(values: FormValues) {
+    const parsed = formSchema.safeParse(values);
+    if (!parsed.success) {
+      form.clearErrors();
+      for (const issue of parsed.error.issues) {
+        const field = issue.path[0];
+        if (field === "phone" || field === "verifyCode") {
+          form.setError(field, { type: "manual", message: issue.message });
+        }
+      }
+      return;
+    }
+
     setSubmitting(true);
     setError("");
     setMessage("");
 
     try {
       if (mode === "register") {
-        await getUserApi().register(values);
+        await getUserApi().register(parsed.data);
         setMessage("注册成功，请继续登录。");
         setMode("login");
         return;
       }
 
-      const result = await getUserApi().login(values);
+      const result = await getUserApi().login(parsed.data);
       setLogin({
         token: result.token,
-        phone: values.phone
+        phone: parsed.data.phone
       });
       setMessage("登录成功，正在跳转...");
       router.replace(redirectTo);

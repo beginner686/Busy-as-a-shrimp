@@ -17,4 +17,3 @@ export class ContentController {
     return ok(this.contentService.publish(Number(id)), "内容已发布");
   }
 }
-

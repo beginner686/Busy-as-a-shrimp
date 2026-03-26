@@ -7,4 +7,3 @@ import { ComplianceService } from "./compliance.service";
   providers: [ComplianceService]
 })
 export class ComplianceModule {}
-

@@ -1,35 +1,50 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
 import { ResourceService } from "./resource.service";
 import { UpdateResourceDto, UploadResourceDto } from "./dto/resource.dto";
+import { JwtAuthGuard } from "../user/guards/jwt-auth.guard";
+import { CurrentUser } from "../user/decorators/current-user.decorator";
+import { User } from "@prisma/client";
 
 @Controller("resource")
 export class ResourceController {
   constructor(private readonly resourceService: ResourceService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post("upload")
-  upload(@Body() payload: UploadResourceDto) {
-    return ok(this.resourceService.upload(payload), "资源上传成功，待审核");
+  async upload(@CurrentUser() user: User, @Body() payload: UploadResourceDto) {
+    const resource = await this.resourceService.upload(user.userId, payload);
+    return ok(resource, "资源上传成功，待审核");
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get("list")
-  list() {
-    return ok(this.resourceService.list());
+  async list(@CurrentUser() user: User) {
+    const resources = await this.resourceService.list(user.userId);
+    return ok(resources);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(":id")
-  update(@Param("id") id: string, @Body() payload: UpdateResourceDto) {
-    return ok(this.resourceService.update(Number(id), payload), "资源已更新");
+  async update(
+    @Param("id") id: string,
+    @CurrentUser() user: User,
+    @Body() payload: UpdateResourceDto
+  ) {
+    const resource = await this.resourceService.update(Number(id), user.userId, payload);
+    return ok(resource, "资源已更新");
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return ok(this.resourceService.remove(Number(id)), "资源已删除");
+  async remove(@Param("id") id: string, @CurrentUser() user: User) {
+    await this.resourceService.remove(Number(id), user.userId);
+    return ok(null, "资源已删除");
   }
 
   @Get("tags")
-  tags() {
-    return ok(this.resourceService.tags());
+  async tags() {
+    const tags = await this.resourceService.tags();
+    return ok(tags);
   }
 }
-

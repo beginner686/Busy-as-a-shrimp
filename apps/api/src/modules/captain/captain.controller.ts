@@ -31,4 +31,3 @@ export class CaptainController {
     return ok(this.captainService.stats());
   }
 }
-
