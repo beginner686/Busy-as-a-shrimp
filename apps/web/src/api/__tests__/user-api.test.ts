@@ -13,7 +13,8 @@ describe("createUserApi", () => {
     const result = await api.register({ phone: "13800000000", verifyCode: "1234" });
 
     expect(client.post).toHaveBeenCalledWith("/user/register", {
-      body: { phone: "13800000000", verifyCode: "1234" }
+      phone: "13800000000",
+      verifyCode: "1234"
     });
     expect(result.registered).toBe(true);
     expect(result.userId).toBe(10086);
@@ -30,7 +31,8 @@ describe("createUserApi", () => {
     const result = await api.login({ phone: "13800000000", verifyCode: "1234" });
 
     expect(client.post).toHaveBeenCalledWith("/user/login", {
-      body: { phone: "13800000000", verifyCode: "1234" }
+      phone: "13800000000",
+      verifyCode: "1234"
     });
     expect(result.token).toBe("mock-jwt-token");
   });
@@ -47,10 +49,9 @@ describe("createUserApi", () => {
     await api.updateRole({ role: "service" });
 
     expect(client.put).toHaveBeenNthCalledWith(1, "/user/info", {
-      body: { city: "Hangzhou", district: "Xihu" }
+      city: "Hangzhou",
+      district: "Xihu"
     });
-    expect(client.put).toHaveBeenNthCalledWith(2, "/user/role", {
-      body: { role: "service" }
-    });
+    expect(client.put).toHaveBeenNthCalledWith(2, "/user/role", { role: "service" });
   });
 });

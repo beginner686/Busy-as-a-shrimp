@@ -25,9 +25,7 @@ describe("createMatchApi", () => {
     await api.run({ needId: 90001 });
     await api.confirm(30001);
 
-    expect(client.post).toHaveBeenNthCalledWith(1, "/match/run", {
-      body: { needId: 90001 }
-    });
+    expect(client.post).toHaveBeenNthCalledWith(1, "/match/run", { needId: 90001 });
     expect(client.post).toHaveBeenNthCalledWith(2, "/match/30001/confirm");
   });
 });

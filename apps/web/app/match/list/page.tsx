@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getMatchApi } from "../../../src/api";
 import { EmptyState } from "../../../src/components/empty-state";
 import { ErrorState } from "../../../src/components/error-state";
+import { useUserStore } from "../../../src/stores/user-store";
 import { getErrorMessage } from "../../../src/utils/error-message";
 
 interface MatchItem {
@@ -16,6 +18,7 @@ interface MatchItem {
 }
 
 export default function MatchListPage() {
+  const token = useUserStore((state) => state.getValidToken());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [items, setItems] = useState<MatchItem[]>([]);
@@ -36,8 +39,11 @@ export default function MatchListPage() {
   }
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
     void loadList();
-  }, []);
+  }, [token]);
 
   async function runMatch() {
     setMessage("");
@@ -61,6 +67,23 @@ export default function MatchListPage() {
     } catch (confirmError) {
       setError(getErrorMessage(confirmError));
     }
+  }
+
+  if (!token) {
+    return (
+      <motion.main
+        className="page glass-card"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
+        <h1 className="title">匹配列表</h1>
+        <p className="subtitle">请先登录后再执行匹配流程。</p>
+        <Link href="/auth" className="btn btn-primary">
+          去登录
+        </Link>
+      </motion.main>
+    );
   }
 
   return (

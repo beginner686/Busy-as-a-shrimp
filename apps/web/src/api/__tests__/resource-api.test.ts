@@ -16,11 +16,9 @@ describe("createResourceApi", () => {
     });
 
     expect(client.post).toHaveBeenCalledWith("/resource/upload", {
-      body: {
-        resourceType: "skill",
-        tags: ["短视频", "探店"],
-        areaCode: "310000"
-      }
+      resourceType: "skill",
+      tags: ["短视频", "探店"],
+      areaCode: "310000"
     });
   });
 

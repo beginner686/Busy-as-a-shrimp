@@ -1,5 +1,6 @@
-import { resolveClientError } from "@airp/http-client";
-
 export function getErrorMessage(error: unknown): string {
-  return resolveClientError(error).message;
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "请求失败，请稍后重试";
 }

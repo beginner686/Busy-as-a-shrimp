@@ -12,7 +12,7 @@ export interface MatchItem {
 export function createMatchApi(client: Pick<HttpClientLike, "get" | "post">) {
   return {
     run(payload: RunMatchDto): Promise<{ taskId: string; status: string }> {
-      return client.post<{ taskId: string; status: string }>("/match/run", { body: payload });
+      return client.post<{ taskId: string; status: string }>("/match/run", payload);
     },
     list(): Promise<MatchItem[]> {
       return client.get<MatchItem[]>("/match/list");

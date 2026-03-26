@@ -11,9 +11,7 @@ export interface ResourceItem {
 export function createResourceApi(client: Pick<HttpClientLike, "get" | "post">) {
   return {
     upload(payload: UploadResourceDto): Promise<{ resourceId: number; reviewStatus: string }> {
-      return client.post<{ resourceId: number; reviewStatus: string }>("/resource/upload", {
-        body: payload
-      });
+      return client.post<{ resourceId: number; reviewStatus: string }>("/resource/upload", payload);
     },
     list(): Promise<ResourceItem[]> {
       return client.get<ResourceItem[]>("/resource/list");

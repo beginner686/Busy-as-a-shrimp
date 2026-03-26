@@ -1,25 +1,28 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getUserApi } from "../../src/api";
-import { ErrorState } from "../../src/components/error-state";
+import { useUserStore, type UserRole } from "../../src/stores/user-store";
 import { getErrorMessage } from "../../src/utils/error-message";
 
-type Role = "service" | "resource" | "both";
-
 export default function ProfilePage() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [userId, setUserId] = useState<number | null>(null);
+  const token = useUserStore((state) => state.getValidToken());
+  const role = useUserStore((state) => state.role);
+  const setRole = useUserStore((state) => state.setRole);
+  const [loading, setLoading] = useState(false);
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
-  const [role, setRole] = useState<Role>("both");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
+
     let active = true;
-    async function load() {
+    async function loadInfo() {
       setLoading(true);
       setError("");
       try {
@@ -27,9 +30,8 @@ export default function ProfilePage() {
         if (!active) {
           return;
         }
-        setUserId(result.userId);
         setCity(result.city ?? "");
-        setRole(result.role as Role);
+        setRole(result.role);
       } catch (loadError) {
         if (!active) {
           return;
@@ -41,11 +43,27 @@ export default function ProfilePage() {
         }
       }
     }
-    void load();
+
+    void loadInfo();
     return () => {
       active = false;
     };
-  }, []);
+  }, [setRole, token]);
+
+  if (!token) {
+    return (
+      <section className="rounded-3xl border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+        <h1 className="text-2xl font-semibold text-slate-900">个人资料</h1>
+        <p className="mt-2 text-sm text-slate-600">当前未登录，请先完成认证。</p>
+        <Link
+          href="/auth"
+          className="mt-4 inline-block rounded-xl bg-blue-600 px-4 py-2 text-white"
+        >
+          去登录
+        </Link>
+      </section>
+    );
+  }
 
   async function saveInfo() {
     setMessage("");
@@ -58,82 +76,78 @@ export default function ProfilePage() {
     }
   }
 
-  async function saveRole() {
+  async function saveRole(nextRole: UserRole) {
     setMessage("");
     setError("");
     try {
-      await getUserApi().updateRole({ role });
-      setMessage("角色已切换");
+      const result = await getUserApi().updateRole({ role: nextRole });
+      setRole(result.role);
+      setMessage("角色已更新");
     } catch (saveError) {
       setError(getErrorMessage(saveError));
     }
   }
 
   return (
-    <motion.main
-      className="page glass-card"
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-    >
-      <h1 className="title">个人资料</h1>
-      <p className="subtitle">角色切换 + 资料维护（/user/info + /user/role）。</p>
+    <section className="rounded-3xl border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+      <h1 className="text-2xl font-semibold text-slate-900">个人资料</h1>
+      <p className="mt-2 text-sm text-slate-600">登录状态下可更新资料和角色。</p>
 
-      {loading ? <p className="small">加载中...</p> : null}
-      {error ? <ErrorState title="资料读取失败" text={error} /> : null}
+      {loading ? <p className="mt-3 text-sm text-slate-600">加载中...</p> : null}
+      {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
 
-      {!loading ? (
-        <div className="grid grid-2">
-          <section className="glass-card item">
-            <h3 className="state-title">基础信息</h3>
-            <p className="small">userId: {userId ?? "-"}</p>
-            <label className="field">
-              <span className="label">城市</span>
-              <input className="input" value={city} onChange={(e) => setCity(e.target.value)} />
-            </label>
-            <label className="field">
-              <span className="label">区县</span>
-              <input
-                className="input"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-              />
-            </label>
-            <div className="button-row">
-              <button className="btn btn-primary" type="button" onClick={saveInfo}>
-                保存资料
-              </button>
-            </div>
-          </section>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block text-sm text-slate-600">城市</span>
+          <input
+            value={city}
+            onChange={(event) => setCity(event.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-sm text-slate-600">区县</span>
+          <input
+            value={district}
+            onChange={(event) => setDistrict(event.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
+          />
+        </label>
+      </div>
 
-          <section className="glass-card item">
-            <h3 className="state-title">角色切换</h3>
-            <label className="field">
-              <span className="label">当前角色</span>
-              <select
-                className="select"
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-              >
-                <option value="service">服务方</option>
-                <option value="resource">资源方</option>
-                <option value="both">双角色</option>
-              </select>
-            </label>
-            <div className="button-row">
-              <button className="btn btn-secondary" type="button" onClick={saveRole}>
-                更新角色
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={`rounded-full px-4 py-2 text-sm ${role === "service" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}
+          onClick={() => void saveRole("service")}
+        >
+          服务方
+        </button>
+        <button
+          type="button"
+          className={`rounded-full px-4 py-2 text-sm ${role === "resource" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}
+          onClick={() => void saveRole("resource")}
+        >
+          资源方
+        </button>
+        <button
+          type="button"
+          className={`rounded-full px-4 py-2 text-sm ${role === "both" ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"}`}
+          onClick={() => void saveRole("both")}
+        >
+          双角色
+        </button>
+      </div>
 
-      {message ? (
-        <p className="small" style={{ marginTop: 12 }}>
-          {message}
-        </p>
-      ) : null}
-    </motion.main>
+      <button
+        type="button"
+        onClick={() => void saveInfo()}
+        className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+      >
+        保存资料
+      </button>
+
+      {message ? <p className="mt-4 text-sm text-emerald-700">{message}</p> : null}
+    </section>
   );
 }

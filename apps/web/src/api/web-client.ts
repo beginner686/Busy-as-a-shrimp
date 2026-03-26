@@ -1,17 +1,5 @@
-import { createHttpClient } from "@airp/http-client";
-import { loadClientEnv } from "../env";
+import { apiClient } from "../lib/api-client";
 
-let cachedClient: ReturnType<typeof createHttpClient> | null = null;
-
-export function getWebClient(): ReturnType<typeof createHttpClient> {
-  if (cachedClient) {
-    return cachedClient;
-  }
-
-  const env = loadClientEnv();
-  cachedClient = createHttpClient({
-    baseUrl: env.apiBaseUrl
-  });
-
-  return cachedClient;
+export function getWebClient() {
+  return apiClient;
 }

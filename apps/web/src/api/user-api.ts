@@ -21,21 +21,19 @@ export interface RegisterResult {
 export function createUserApi(client: Pick<HttpClientLike, "get" | "post" | "put">) {
   return {
     register(payload: RegisterDto): Promise<RegisterResult> {
-      return client.post<RegisterResult>("/user/register", { body: payload });
+      return client.post<RegisterResult>("/user/register", payload);
     },
     login(payload: LoginDto): Promise<LoginResult> {
-      return client.post<LoginResult>("/user/login", { body: payload });
+      return client.post<LoginResult>("/user/login", payload);
     },
     getInfo(): Promise<UserInfo> {
       return client.get<UserInfo>("/user/info");
     },
     updateInfo(payload: UpdateUserInfoDto): Promise<{ updated: boolean }> {
-      return client.put<{ updated: boolean }>("/user/info", { body: payload });
+      return client.put<{ updated: boolean }>("/user/info", payload);
     },
     updateRole(payload: UpdateRoleDto): Promise<{ updated: boolean; role: UpdateRoleDto["role"] }> {
-      return client.put<{ updated: boolean; role: UpdateRoleDto["role"] }>("/user/role", {
-        body: payload
-      });
+      return client.put<{ updated: boolean; role: UpdateRoleDto["role"] }>("/user/role", payload);
     }
   };
 }

@@ -1,18 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-export function MswProvider() {
+export function MswProvider({ children }: { children: ReactNode }) {
+  const enabled = process.env.NEXT_PUBLIC_ENABLE_MSW === "1";
+  const [ready, setReady] = useState(!enabled);
+
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ENABLE_MSW !== "1") {
+    if (!enabled) {
       return;
     }
-    void import("../mocks/browser").then(({ worker }) => {
-      void worker.start({
+    void import("../mocks/browser").then(async ({ worker }) => {
+      await worker.start({
         onUnhandledRequest: "bypass"
       });
+      setReady(true);
     });
-  }, []);
+  }, [enabled]);
 
-  return null;
+  if (!ready) {
+    return null;
+  }
+
+  return <>{children}</>;
 }
