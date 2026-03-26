@@ -7,4 +7,3 @@ import { MatchService } from "./match.service";
   providers: [MatchService]
 })
 export class MatchModule {}
-

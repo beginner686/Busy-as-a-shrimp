@@ -22,4 +22,3 @@ export class MatchController {
     return ok(this.matchService.confirm(Number(id)), "匹配已确认");
   }
 }
-

@@ -8,7 +8,7 @@ import { User } from "@prisma/client";
 
 @Controller("resource")
 export class ResourceController {
-  constructor(private readonly resourceService: ResourceService) { }
+  constructor(private readonly resourceService: ResourceService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post("upload")

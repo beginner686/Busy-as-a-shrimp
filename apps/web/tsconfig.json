@@ -3,25 +3,15 @@
   "compilerOptions": {
     "jsx": "preserve",
     "noEmit": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": false,
     "incremental": true,
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@airp/http-client": [
-        "../../packages/http-client/src/index.ts"
-      ],
-      "@airp/api-types": [
-        "../../packages/api-types/src/index.ts"
-      ]
+      "@/*": ["./src/*"],
+      "@airp/http-client": ["../../packages/http-client/src/index.ts"],
+      "@airp/api-types": ["../../packages/api-types/src/index.ts"]
     },
     "plugins": [
       {
@@ -29,13 +19,6 @@
       }
     ]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

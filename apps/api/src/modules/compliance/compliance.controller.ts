@@ -11,4 +11,3 @@ export class ComplianceController {
     return ok(this.complianceService.rules());
   }
 }
-

@@ -11,4 +11,3 @@ export class MembershipController {
     return ok(this.membershipService.plans());
   }
 }
-

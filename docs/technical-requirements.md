@@ -301,4 +301,3 @@ Base URL: `/api/v1`
 - CI 流水线与质量门禁（lint/test/build）
 - 业务事件总线（埋点+风控+运营）
 - 多环境配置体系（dev/staging/prod）
-
