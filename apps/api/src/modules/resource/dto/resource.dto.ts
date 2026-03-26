@@ -1,17 +1,62 @@
-export type ResourceType = "skill" | "location" | "account" | "time";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
 
-export interface UploadResourceDto {
-  resourceType: ResourceType;
-  tags: string[];
+export enum ResourceType {
+  SKILL = "skill",
+  LOCATION = "location",
+  ACCOUNT = "account",
+  TIME = "time"
+}
+
+export enum ResourceStatus {
+  PENDING = "pending",
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  REJECTED = "rejected"
+}
+
+export class PriceRangeDto {
+  @IsNumber()
+  min!: number;
+
+  @IsNumber()
+  max!: number;
+}
+
+export class UploadResourceDto {
+  @IsEnum(ResourceType)
+  resourceType!: ResourceType;
+
+  @IsArray()
+  @IsString({ each: true })
+  tags!: string[];
+
+  @IsString()
+  @IsOptional()
   areaCode?: string;
-  priceRange?: {
-    min: number;
-    max: number;
-  };
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PriceRangeDto)
+  priceRange?: PriceRangeDto;
 }
 
-export interface UpdateResourceDto {
+export class UpdateResourceDto {
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
   tags?: string[];
-  status?: "active" | "inactive";
-}
 
+  @IsEnum(ResourceStatus)
+  @IsOptional()
+  status?: ResourceStatus;
+
+  @IsString()
+  @IsOptional()
+  areaCode?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PriceRangeDto)
+  priceRange?: PriceRangeDto;
+}

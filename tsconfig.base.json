@@ -13,8 +13,13 @@
     "paths": {
       "@airp/database/*": [
         "packages/database/*"
+      ],
+      "@airp/http-client": [
+        "packages/http-client/src/index.ts"
+      ],
+      "@airp/api-types": [
+        "packages/api-types/src/index.ts"
       ]
     }
   }
 }
-
