@@ -28,7 +28,10 @@ describe("createResourceApi", () => {
       get: vi
         .fn()
         .mockResolvedValueOnce([{ resourceId: 20001, tags: ["短视频"], status: "active" }])
-        .mockResolvedValueOnce(["地区", "技能"])
+        .mockResolvedValueOnce({
+          location: ["上海", "北京"],
+          skill: ["短视频", "直播"]
+        })
     };
     const api = createResourceApi(client);
 
@@ -36,6 +39,9 @@ describe("createResourceApi", () => {
     const tags = await api.tags();
 
     expect(list).toHaveLength(1);
-    expect(tags).toEqual(["地区", "技能"]);
+    expect(tags).toEqual({
+      location: ["上海", "北京"],
+      skill: ["短视频", "直播"]
+    });
   });
 });

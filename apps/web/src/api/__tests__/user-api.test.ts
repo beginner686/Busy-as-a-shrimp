@@ -10,11 +10,18 @@ describe("createUserApi", () => {
     };
     const api = createUserApi(client);
 
-    const result = await api.register({ phone: "13800000000", verifyCode: "1234" });
+    const result = await api.register({
+      phone: "13800000000",
+      verifyCode: "1234",
+      captchaId: "cap-id-1",
+      captchaValue: "A1b2"
+    });
 
     expect(client.post).toHaveBeenCalledWith("/user/register", {
       phone: "13800000000",
-      verifyCode: "1234"
+      verifyCode: "1234",
+      captchaId: "cap-id-1",
+      captchaValue: "A1b2"
     });
     expect(result.registered).toBe(true);
     expect(result.userId).toBe(10086);
@@ -28,13 +35,52 @@ describe("createUserApi", () => {
     };
     const api = createUserApi(client);
 
-    const result = await api.login({ phone: "13800000000", verifyCode: "1234" });
+    const result = await api.login({
+      phone: "13800000000",
+      smsCode: "123456"
+    });
 
     expect(client.post).toHaveBeenCalledWith("/user/login", {
       phone: "13800000000",
-      verifyCode: "1234"
+      smsCode: "123456"
     });
     expect(result.token).toBe("mock-jwt-token");
+  });
+
+  it("calls send sms endpoint with payload", async () => {
+    const client = {
+      post: vi.fn().mockResolvedValue({ success: true, message: "验证码已发送" }),
+      get: vi.fn(),
+      put: vi.fn()
+    };
+    const api = createUserApi(client);
+
+    const result = await api.sendSms({
+      phone: "13800000000",
+      captchaId: "cap-id-1",
+      captchaValue: "A1b2"
+    });
+
+    expect(client.post).toHaveBeenCalledWith("/user/send-sms", {
+      phone: "13800000000",
+      captchaId: "cap-id-1",
+      captchaValue: "A1b2"
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("calls captcha endpoint", async () => {
+    const client = {
+      post: vi.fn(),
+      get: vi.fn().mockResolvedValue({ captchaId: "id-1", imageBase64: "base64-content" }),
+      put: vi.fn()
+    };
+    const api = createUserApi(client);
+
+    const result = await api.fetchCaptcha();
+
+    expect(client.get).toHaveBeenCalledWith("/user/captcha");
+    expect(result.captchaId).toBe("id-1");
   });
 
   it("calls profile update and role update endpoints", async () => {

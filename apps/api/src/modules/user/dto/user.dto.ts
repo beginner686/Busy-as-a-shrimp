@@ -1,9 +1,22 @@
 import { UserRole } from "@prisma/client";
-import { IsMobilePhone, IsString, Length, IsOptional, IsEnum } from "class-validator";
+import { IsMobilePhone, IsString, Length, IsOptional, IsEnum, Matches } from "class-validator";
 
 export class SendCodeDto {
   @IsMobilePhone("zh-CN")
   phone!: string;
+}
+
+export class SendSmsDto {
+  @IsMobilePhone("zh-CN")
+  phone!: string;
+
+  @IsString()
+  @Length(4, 4)
+  @Matches(/^[a-zA-Z0-9]{4}$/)
+  captchaValue!: string;
+
+  @IsString()
+  captchaId!: string;
 }
 
 export class RegisterDto {
@@ -13,6 +26,14 @@ export class RegisterDto {
   @IsString()
   @Length(4, 6)
   verifyCode!: string; // 手机验证码
+
+  @IsString()
+  @Length(4, 4)
+  @Matches(/^[a-zA-Z0-9]{4}$/)
+  captchaValue!: string;
+
+  @IsString()
+  captchaId!: string;
 }
 
 export class LoginDto {
@@ -24,6 +45,21 @@ export class LoginDto {
   @IsOptional()
   @Length(4, 6)
   verifyCode?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(4, 6)
+  smsCode?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(4, 4)
+  @Matches(/^[a-zA-Z0-9]{4}$/)
+  captchaValue?: string;
+
+  @IsString()
+  @IsOptional()
+  captchaId?: string;
 
   @IsString()
   @IsOptional()

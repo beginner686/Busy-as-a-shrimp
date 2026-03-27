@@ -2,11 +2,13 @@ import type { UploadResourceDto } from "@airp/api-types";
 import type { HttpClientLike } from "./http";
 
 export interface ResourceItem {
-  resourceId: number;
+  resourceId: number | string;
   resourceType: "skill" | "location" | "account" | "time";
-  tags: string[];
-  status: "active" | "inactive";
+  tags: unknown;
+  status: "active" | "inactive" | "pending" | "rejected";
 }
+
+export type ResourceTagGroups = Record<string, string[]>;
 
 export function createResourceApi(client: Pick<HttpClientLike, "get" | "post">) {
   return {
@@ -16,8 +18,8 @@ export function createResourceApi(client: Pick<HttpClientLike, "get" | "post">) 
     list(): Promise<ResourceItem[]> {
       return client.get<ResourceItem[]>("/resource/list");
     },
-    tags(): Promise<string[]> {
-      return client.get<string[]>("/resource/tags");
+    tags(): Promise<ResourceTagGroups> {
+      return client.get<ResourceTagGroups>("/resource/tags");
     }
   };
 }

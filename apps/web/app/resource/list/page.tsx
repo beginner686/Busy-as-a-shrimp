@@ -14,6 +14,45 @@ interface ResourceItem {
   status: string;
 }
 
+function normalizeTextList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => normalizeTextList(item));
+  }
+
+  if (typeof value === "string") {
+    const text = value.trim();
+    return text ? [text] : [];
+  }
+
+  if (typeof value === "number") {
+    return [String(value)];
+  }
+
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap((item) => normalizeTextList(item));
+  }
+
+  return [];
+}
+
+function normalizeResourceList(value: unknown): ResourceItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item, index) => {
+    const row = item as Record<string, unknown>;
+    const parsedId = Number(row.resourceId);
+
+    return {
+      resourceId: Number.isFinite(parsedId) ? parsedId : index + 1,
+      resourceType: typeof row.resourceType === "string" ? row.resourceType : "unknown",
+      tags: normalizeTextList(row.tags),
+      status: typeof row.status === "string" ? row.status : "unknown"
+    };
+  });
+}
+
 export default function ResourceListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,8 +72,8 @@ export default function ResourceListPage() {
         if (!active) {
           return;
         }
-        setItems(resourceList);
-        setTags(resourceTags);
+        setItems(normalizeResourceList(resourceList));
+        setTags(normalizeTextList(resourceTags));
       } catch (loadError) {
         if (!active) {
           return;
@@ -85,7 +124,7 @@ export default function ResourceListPage() {
                 <span className="badge">{item.status}</span>
               </div>
               <p className="small">类型：{item.resourceType}</p>
-              <p className="small">标签：{item.tags.join(" / ")}</p>
+              <p className="small">标签：{item.tags.length ? item.tags.join(" / ") : "-"}</p>
             </motion.article>
           ))}
         </section>
