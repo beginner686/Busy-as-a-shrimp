@@ -8,6 +8,7 @@ import {
   LoginDto,
   RegisterDto,
   SendCodeDto,
+  SendSmsDto,
   UpdateRoleDto,
   UpdateUserInfoDto,
   VerifyIdentityDto
@@ -22,9 +23,21 @@ interface ICurrentUser {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Get("captcha")
+  async captcha() {
+    const result = await this.userService.getCaptcha();
+    return ok(result, "图形验证码已生成");
+  }
+
   @Post("send-code")
   async sendCode(@Body() payload: SendCodeDto) {
     const result = await this.userService.sendCode(payload);
+    return ok(result, result.message);
+  }
+
+  @Post("send-sms")
+  async sendSms(@Body() payload: SendSmsDto) {
+    const result = await this.userService.sendSms(payload);
     return ok(result, result.message);
   }
 

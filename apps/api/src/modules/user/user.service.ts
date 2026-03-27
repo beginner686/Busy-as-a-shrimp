@@ -7,6 +7,7 @@ import {
   LoginDto,
   RegisterDto,
   SendCodeDto,
+  SendSmsDto,
   UpdateRoleDto,
   UpdateUserInfoDto,
   VerifyIdentityDto
@@ -15,6 +16,7 @@ import {
 @Injectable()
 export class UserService {
   private codes = new Map<string, string>();
+  private captchas = new Map<string, { code: string; expiresAt: number }>();
 
   constructor(
     private prisma: PrismaService,
@@ -35,8 +37,13 @@ export class UserService {
       success: true,
       message: "验证码已发送 (测试模式，请查看服务端控制台)",
       // 演示环境下为了方便测试，将 code 直接返回（生产严禁如此）
-      code: process.env.NODE_ENV === "development" ? code : undefined
+      code: process.env.NODE_ENV === "production" ? undefined : code
     };
+  }
+
+  async sendSms(payload: SendSmsDto) {
+    this.validateCaptchaOrThrow(payload.captchaId, payload.captchaValue);
+    return this.sendCode({ phone: payload.phone });
   }
 
   /**
@@ -46,12 +53,81 @@ export class UserService {
     return crypto.createHash("sha256").update(phone).digest("hex");
   }
 
+  private generateCaptchaCode(length = 4): string {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < length; i += 1) {
+      const index = Math.floor(Math.random() * chars.length);
+      code += chars[index];
+    }
+    return code;
+  }
+
+  private buildCaptchaSvg(code: string): string {
+    const chars = code.split("");
+    const textNodes = chars
+      .map((char, index) => {
+        const x = 18 + index * 22;
+        const y = 30 + (index % 2 === 0 ? 0 : 2);
+        const rotate = Math.floor(Math.random() * 16 - 8);
+        return `<text x="${x}" y="${y}" font-size="22" fill="#1f2a44" transform="rotate(${rotate} ${x} ${y})">${char}</text>`;
+      })
+      .join("");
+
+    const lines = Array.from({ length: 3 })
+      .map(() => {
+        const x1 = Math.floor(Math.random() * 100);
+        const y1 = Math.floor(Math.random() * 40);
+        const x2 = Math.floor(Math.random() * 100);
+        const y2 = Math.floor(Math.random() * 40);
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#94a3b8" stroke-width="1" />`;
+      })
+      .join("");
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40"><rect width="120" height="40" rx="6" fill="#f8fafc"/>${lines}${textNodes}</svg>`;
+  }
+
+  async getCaptcha() {
+    const captchaId = crypto.randomUUID();
+    const code = this.generateCaptchaCode();
+    const expiresAt = Date.now() + 2 * 60 * 1000;
+
+    this.captchas.set(captchaId, { code, expiresAt });
+
+    const svg = this.buildCaptchaSvg(code);
+    const imageBase64 = Buffer.from(svg, "utf8").toString("base64");
+
+    return { captchaId, imageBase64 };
+  }
+
+  private validateCaptchaOrThrow(captchaId?: string, captchaValue?: string) {
+    if (!captchaId || !captchaValue) {
+      throw new BadRequestException("图形验证码缺失");
+    }
+
+    const captcha = this.captchas.get(captchaId);
+    if (!captcha || captcha.expiresAt < Date.now()) {
+      this.captchas.delete(captchaId);
+      throw new BadRequestException("图形验证码已过期");
+    }
+
+    const expected = captcha.code.toUpperCase();
+    const actual = captchaValue.toUpperCase();
+    if (expected !== actual) {
+      throw new BadRequestException("图形验证码错误");
+    }
+
+    this.captchas.delete(captchaId);
+  }
+
   private generateToken(user: User) {
     const payload = { userId: user.userId.toString(), role: user.role };
     return this.jwtService.sign(payload);
   }
 
   async register(payload: RegisterDto) {
+    this.validateCaptchaOrThrow(payload.captchaId, payload.captchaValue);
+
     // 验证码校验
     const cachedCode = this.codes.get(payload.phone);
     if (payload.verifyCode !== "123456" && payload.verifyCode !== cachedCode) {
@@ -91,23 +167,30 @@ export class UserService {
       return { token: "mock-wechat-token-001" };
     }
 
-    if (!payload.phone || !payload.verifyCode) {
+    const smsCode = payload.smsCode ?? payload.verifyCode;
+    if (!payload.phone || !smsCode) {
       throw new BadRequestException("登录凭证缺失");
     }
 
     // 验证码校验逻辑
     const cachedCode = this.codes.get(payload.phone);
-    if (payload.verifyCode !== "123456" && payload.verifyCode !== cachedCode) {
+    if (smsCode !== "123456" && smsCode !== cachedCode) {
       throw new BadRequestException("验证码错误");
     }
     this.codes.delete(payload.phone);
 
     const phoneHash = this.hashPhone(payload.phone);
-    const user = await this.prisma.user.findFirst({
+    let user = await this.prisma.user.findFirst({
       where: { phoneHash }
     });
     if (!user) {
-      throw new BadRequestException("用户不存在，请先注册");
+      user = await this.prisma.user.create({
+        data: {
+          phoneHash,
+          role: "service",
+          status: "active"
+        }
+      });
     }
 
     if (user.status !== "active") {

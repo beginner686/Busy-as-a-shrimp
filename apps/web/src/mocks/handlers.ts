@@ -1,6 +1,28 @@
 import { http, HttpResponse } from "msw";
 
 export const handlers = [
+  http.get("*/api/v1/user/captcha", () => {
+    return HttpResponse.json({
+      success: true,
+      message: "图形验证码已生成",
+      data: {
+        captchaId: "mock-captcha-id",
+        imageBase64:
+          "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmOGZhZmMiLz48dGV4dCB4PSIyMCIgeT0iMjgiIGZvbnQtc2l6ZT0iMjAiPkExQjI8L3RleHQ+PC9zdmc+"
+      }
+    });
+  }),
+  http.post("*/api/v1/user/send-sms", async () => {
+    return HttpResponse.json({
+      success: true,
+      message: "短信发送成功",
+      data: {
+        success: true,
+        message: "验证码已发送",
+        code: "123456"
+      }
+    });
+  }),
   http.post("*/api/v1/user/register", async () => {
     return HttpResponse.json({
       success: true,
@@ -66,6 +88,17 @@ export const handlers = [
       success: true,
       message: "ok",
       data: []
+    });
+  }),
+  http.get("*/api/v1/resource/tags", () => {
+    return HttpResponse.json({
+      success: true,
+      message: "ok",
+      data: {
+        skill: ["短视频", "直播", "探店"],
+        location: ["上海", "北京", "杭州"],
+        time: ["长期", "短期"]
+      }
     });
   }),
   http.get("*/api/v1/match/list", () => {

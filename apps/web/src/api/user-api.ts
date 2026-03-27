@@ -1,4 +1,11 @@
-import type { LoginDto, RegisterDto, UpdateRoleDto, UpdateUserInfoDto } from "@airp/api-types";
+import type {
+  CaptchaDto,
+  LoginDto,
+  RegisterDto,
+  SendSmsDto,
+  UpdateRoleDto,
+  UpdateUserInfoDto
+} from "@airp/api-types";
 import type { HttpClientLike } from "./http";
 
 export interface UserInfo {
@@ -18,13 +25,25 @@ export interface RegisterResult {
   userId: number;
 }
 
+export interface SendSmsResult {
+  success: boolean;
+  message: string;
+  code?: string;
+}
+
 export function createUserApi(client: Pick<HttpClientLike, "get" | "post" | "put">) {
   return {
     register(payload: RegisterDto): Promise<RegisterResult> {
       return client.post<RegisterResult>("/user/register", payload);
     },
+    sendSms(payload: SendSmsDto): Promise<SendSmsResult> {
+      return client.post<SendSmsResult>("/user/send-sms", payload);
+    },
     login(payload: LoginDto): Promise<LoginResult> {
       return client.post<LoginResult>("/user/login", payload);
+    },
+    fetchCaptcha(): Promise<CaptchaDto> {
+      return client.get<CaptchaDto>("/user/captcha");
     },
     getInfo(): Promise<UserInfo> {
       return client.get<UserInfo>("/user/info");

@@ -125,7 +125,7 @@ export default function HomePage() {
     <section className="grid gap-4">
       <Card className="border-white/70 bg-white/75 shadow-xl backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="text-3xl text-slate-900">AI资源共享平台（Web）</CardTitle>
+          <CardTitle className="text-3xl text-slate-900">虾忙</CardTitle>
           <CardDescription>仪表盘：用户状态、快速入口与匹配任务调度。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">

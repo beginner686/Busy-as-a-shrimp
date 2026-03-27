@@ -92,9 +92,12 @@ function getViewInsight(mode: MatchViewMode, item: MatchItem): { title: string; 
 
 export default function MatchListPage() {
   const searchParams = useSearchParams();
-  const token = useUserStore((state) => state.getValidToken());
+  const token = useUserStore((state) => state.token);
+  const tokenExpiresAt = useUserStore((state) => state.tokenExpiresAt);
+  const logout = useUserStore((state) => state.logout);
   const role = useUserStore((state) => state.role);
 
+  const [hydrated, setHydrated] = useState(false);
   const [needId, setNeedId] = useState("90001");
   const [items, setItems] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +114,21 @@ export default function MatchListPage() {
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => b.score - a.score);
   }, [items]);
+  const isAuthed = hydrated && Boolean(token) && Date.now() < tokenExpiresAt;
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || !token) {
+      return;
+    }
+
+    if (Date.now() >= tokenExpiresAt) {
+      logout();
+    }
+  }, [hydrated, logout, token, tokenExpiresAt]);
 
   useEffect(() => {
     if (role === "resource") {
@@ -146,15 +164,15 @@ export default function MatchListPage() {
   }
 
   useEffect(() => {
-    if (!token) {
+    if (!isAuthed) {
       return;
     }
 
     void loadList();
-  }, [token]);
+  }, [isAuthed]);
 
   useEffect(() => {
-    if (!token || hydratedFromQueryRef.current) {
+    if (!isAuthed || hydratedFromQueryRef.current) {
       return;
     }
 
@@ -175,7 +193,7 @@ export default function MatchListPage() {
     }
 
     hydratedFromQueryRef.current = true;
-  }, [searchParams, token]);
+  }, [isAuthed, searchParams]);
 
   useEffect(() => {
     if (!pendingTask) {
@@ -255,19 +273,25 @@ export default function MatchListPage() {
     }
   }
 
-  if (!token) {
+  if (!isAuthed) {
     return (
-      <Card className="rounded-3xl border-white/70 bg-white/70 shadow-xl backdrop-blur-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl">匹配列表</CardTitle>
-          <CardDescription>请先登录后再执行匹配流程。</CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button asChild>
-            <Link href="/auth">去登录</Link>
-          </Button>
-        </CardFooter>
-      </Card>
+      <section className="space-y-4">
+        <Card className="rounded-3xl border-white/70 bg-white/70 shadow-xl backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle className="text-2xl">匹配列表</CardTitle>
+            <CardDescription>
+              {hydrated ? "请先登录后再执行匹配流程。" : "正在初始化页面..."}
+            </CardDescription>
+          </CardHeader>
+          {hydrated ? (
+            <CardFooter>
+              <Button asChild>
+                <Link href="/auth">去登录</Link>
+              </Button>
+            </CardFooter>
+          ) : null}
+        </Card>
+      </section>
     );
   }
 
