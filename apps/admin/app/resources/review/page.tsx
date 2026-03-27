@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { getAdminApi } from "../../../src/api";
 import { EmptyState } from "../../../src/components/empty-state";
-import { ErrorState } from "../../../src/components/error-state";
 import { getErrorMessage } from "../../../src/utils/error-message";
+import styles from "../../page.module.css";
 
 interface AdminResource {
   resourceId: number;
@@ -39,7 +39,7 @@ export default function ResourceReviewPage() {
     setError("");
     try {
       const result = await getAdminApi().reviewResource(resourceId, decision);
-      setMessage(`资源 #${result.resourceId} 已更新为 ${result.status}`);
+      setMessage(`资源 #${result.resourceId} 操作成功：已更新为 ${result.status}`);
       await loadResources();
     } catch (reviewError) {
       setError(getErrorMessage(reviewError));
@@ -47,43 +47,64 @@ export default function ResourceReviewPage() {
   }
 
   return (
-    <main className="page glass">
-      <h1 className="title">资源审核</h1>
-      <p className="subtitle">审核动作：`PUT /admin/resources/:id`。</p>
+    <main className={styles.page}>
+      <div className={styles.headerRow}>
+        <h1 className={styles.title}>资源分发审核</h1>
+      </div>
 
-      {message ? <p className="small">{message}</p> : null}
-      {loading ? <p className="small">加载中...</p> : null}
-      {error ? <ErrorState title="审核失败" text={error} /> : null}
+      {message ? <p className={styles.message}>{message}</p> : null}
+      {loading ? <p className={styles.loading}>加载中...</p> : null}
+      {error ? <p className={styles.error}>{error}</p> : null}
 
       {!loading && !error && resources.length === 0 ? (
-        <EmptyState title="暂无待审核资源" text="当前没有待处理记录。" />
+        <EmptyState title="暂无待审核资源" text="当前全网分发频道暂无待处理的资源审核请求。" />
       ) : null}
 
       {!loading && !error && resources.length > 0 ? (
-        <section className="grid">
-          {resources.map((item) => (
-            <article key={item.resourceId} className="glass card">
-              <h3 className="card-title">资源 #{item.resourceId}</h3>
-              <p className="small">当前状态：{item.reviewStatus}</p>
-              <div className="row">
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => void review(item.resourceId, "approve")}
-                >
-                  通过
-                </button>
-                <button
-                  className="btn btn-danger"
-                  type="button"
-                  onClick={() => void review(item.resourceId, "reject")}
-                >
-                  驳回
-                </button>
-              </div>
-            </article>
-          ))}
-        </section>
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <h2>待审核队列</h2>
+          </div>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>资源编号</th>
+                  <th>当前状态</th>
+                  <th>管理操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resources.map((item) => (
+                  <tr key={item.resourceId}>
+                    <td>#{item.resourceId}</td>
+                    <td>
+                      <span className={`${styles.badge} ${styles.pending}`}>
+                        {item.reviewStatus}
+                      </span>
+                    </td>
+                    <td>
+                      <div className={styles.actionInline}>
+                        <button
+                          style={{ borderColor: "#00c778", background: "rgba(0,199,120,0.15)" }}
+                          onClick={() => void review(item.resourceId, "approve")}
+                        >
+                          审核通过
+                        </button>
+                        <button
+                          style={{ borderColor: "#ff566f", background: "rgba(255,86,111,0.15)" }}
+                          onClick={() => void review(item.resourceId, "reject")}
+                        >
+                          拒绝退回
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : null}
     </main>
   );

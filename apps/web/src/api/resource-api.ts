@@ -13,13 +13,13 @@ export type ResourceTagGroups = Record<string, string[]>;
 export function createResourceApi(client: Pick<HttpClientLike, "get" | "post">) {
   return {
     upload(payload: UploadResourceDto): Promise<{ resourceId: number; reviewStatus: string }> {
-      return client.post<{ resourceId: number; reviewStatus: string }>("/resource/upload", payload);
+      return client.post<{ resourceId: number; reviewStatus: string }>("resource/upload", payload);
     },
     list(): Promise<ResourceItem[]> {
-      return client.get<ResourceItem[]>("/resource/list");
+      return client.get<ResourceItem[]>("resource/list");
     },
     tags(): Promise<ResourceTagGroups> {
-      return client.get<ResourceTagGroups>("/resource/tags");
+      return client.get<ResourceTagGroups>("resource/tags");
     }
   };
 }

@@ -1,16 +1,21 @@
 import { createHttpClient } from "@airp/http-client";
 import { loadClientEnv } from "../env";
+import { getAdminToken } from "../../lib/auth";
 
 let cachedClient: ReturnType<typeof createHttpClient> | null = null;
 
 export function getAdminClient(): ReturnType<typeof createHttpClient> {
-  if (cachedClient) {
-    return cachedClient;
-  }
-
   const env = loadClientEnv();
-  cachedClient = createHttpClient({
-    baseUrl: env.apiBaseUrl
+  const token = getAdminToken();
+
+  return createHttpClient({
+    baseUrl: env.apiBaseUrl,
+    fetcher: (url, init) => {
+      const headers = new Headers(init?.headers);
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return fetch(url, { ...init, headers });
+    }
   });
-  return cachedClient;
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getAdminApi } from "../../src/api";
 import { ErrorState } from "../../src/components/error-state";
 import { getErrorMessage } from "../../src/utils/error-message";
+import styles from "../page.module.css";
 
 interface AdminStats {
   totalUsers: number;
@@ -44,27 +45,28 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <main className="page glass">
-      <h1 className="title">统计看板</h1>
-      <p className="subtitle">数据来源：`GET /admin/stats`。</p>
+    <main className={styles.page}>
+      <div className={styles.headerRow}>
+        <h1 className={styles.title}>统计看板</h1>
+      </div>
 
-      {loading ? <p className="small">加载中...</p> : null}
-      {error ? <ErrorState title="加载失败" text={error} /> : null}
+      {loading ? <p className={styles.loading}>加载中...</p> : null}
+      {error ? <p className={styles.error}>{error}</p> : null}
 
       {!loading && stats ? (
-        <section className="grid grid-3">
-          <article className="glass card">
-            <h3 className="card-title">总用户数</h3>
-            <p>{stats.totalUsers}</p>
-          </article>
-          <article className="glass card">
-            <h3 className="card-title">总资源数</h3>
-            <p>{stats.totalResources}</p>
-          </article>
-          <article className="glass card">
-            <h3 className="card-title">匹配率</h3>
-            <p>{(stats.matchRate * 100).toFixed(1)}%</p>
-          </article>
+        <section className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>总用户数量</span>
+            <span className={styles.statValue}>{stats.totalUsers}</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>全平台资源总数</span>
+            <span className={styles.statValue}>{stats.totalResources}</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>AI 撮合匹配率</span>
+            <span className={styles.statValue}>{(stats.matchRate * 100).toFixed(1)}%</span>
+          </div>
         </section>
       ) : null}
     </main>
