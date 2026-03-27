@@ -13,14 +13,14 @@ function parseAppEnv(value?: string): AppEnv {
   throw new Error(`Invalid NEXT_PUBLIC_APP_ENV: ${raw}`);
 }
 
-export function loadClientEnv(envSource: NodeJS.ProcessEnv = process.env): ClientEnv {
-  const apiBaseUrl = envSource.NEXT_PUBLIC_API_BASE_URL;
+export function loadClientEnv(): ClientEnv {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!apiBaseUrl) {
     throw new Error("Missing NEXT_PUBLIC_API_BASE_URL");
   }
 
   return {
     apiBaseUrl,
-    appEnv: parseAppEnv(envSource.NEXT_PUBLIC_APP_ENV)
+    appEnv: parseAppEnv(process.env.NEXT_PUBLIC_APP_ENV)
   };
 }

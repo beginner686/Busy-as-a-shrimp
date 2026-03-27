@@ -68,28 +68,28 @@ interface AdminCaptain {
   commissionRate: number;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:3001/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081/api/v1";
 
 const userStatusOptions: Array<{ label: string; value: "all" | UserStatus }> = [
-  { label: "All", value: "all" },
-  { label: "Active", value: "active" },
-  { label: "Frozen", value: "frozen" },
-  { label: "Banned", value: "banned" }
+  { label: "全部", value: "all" },
+  { label: "正常有效", value: "active" },
+  { label: "被冻结", value: "frozen" },
+  { label: "已封禁", value: "banned" }
 ];
 
 const userRoleOptions: Array<{ label: string; value: "all" | UserRole }> = [
-  { label: "All", value: "all" },
-  { label: "Service", value: "service" },
-  { label: "Resource", value: "resource" },
-  { label: "Both", value: "both" }
+  { label: "所有角色", value: "all" },
+  { label: "服务提供者", value: "service" },
+  { label: "资源需求者", value: "resource" },
+  { label: "双重身份", value: "both" }
 ];
 
 const resourceStatusOptions: Array<{ label: string; value: "all" | ResourceStatus }> = [
-  { label: "All", value: "all" },
-  { label: "Pending", value: "pending" },
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-  { label: "Rejected", value: "rejected" }
+  { label: "全部状态", value: "all" },
+  { label: "等待审核", value: "pending" },
+  { label: "正常展示", value: "active" },
+  { label: "已下架", value: "inactive" },
+  { label: "已退回", value: "rejected" }
 ];
 
 async function requestData<T>(path: string, token: string, init?: RequestInit): Promise<T> {
@@ -126,22 +126,22 @@ function formatDate(value: string | undefined): string {
 
 function roleLabel(role: UserRole): string {
   if (role === "service") {
-    return "Service";
+    return "服务提供";
   }
   if (role === "resource") {
-    return "Resource";
+    return "资源寻求";
   }
-  return "Both";
+  return "双重身份";
 }
 
 function levelLabel(level: CaptainLevel): string {
   if (level === "gold") {
-    return "Gold";
+    return "金牌王牌团长";
   }
   if (level === "advanced") {
-    return "Advanced";
+    return "高级合伙团长";
   }
-  return "Normal";
+  return "普通拓展员";
 }
 
 export default function AdminHomePage() {
@@ -295,7 +295,7 @@ export default function AdminHomePage() {
         method: "PUT",
         body: JSON.stringify({ status })
       });
-      setActionMessage(`User ${userId} status set to ${status}`);
+      setActionMessage(`已将用户 ${userId} 状态设置为 ${status}`);
       await Promise.all([loadUsers(token), loadStats(token)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update user status");
@@ -315,11 +315,11 @@ export default function AdminHomePage() {
         body: JSON.stringify({
           decision,
           reason:
-            decision === "reject" ? "Manually rejected by moderator." : "Approved by moderator."
+            decision === "reject" ? "管理员手工拒绝。" : "管理员审批通过。"
         })
       });
       setActionMessage(
-        `Resource ${resourceId} ${decision === "approve" ? "approved" : "rejected"}`
+        `资源 ${resourceId} 已确认${decision === "approve" ? "审核通过" : "拒绝"}`
       );
       await Promise.all([loadResources(token), loadStats(token)]);
     } catch (err) {
@@ -332,7 +332,7 @@ export default function AdminHomePage() {
       return;
     }
     if (!noticeContent.trim()) {
-      setError("Please enter announcement content.");
+      setError("抱歉，向全站发送的公告内容不能为空。");
       return;
     }
     try {
@@ -340,14 +340,14 @@ export default function AdminHomePage() {
         method: "POST",
         body: JSON.stringify({
           content: noticeContent.trim(),
-          publisher: noticePublisher.trim() || "admin"
+          publisher: noticePublisher.trim() || "系统管理员"
         })
       });
       setNoticeContent("");
-      setActionMessage("Announcement published");
+      setActionMessage("该系统通告已成功推送到平台！");
       await Promise.all([loadAnnouncements(token), loadStats(token)]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to publish announcement");
+      setError(err instanceof Error ? err.message : "请求后台发布通告失败");
     }
   }
 
@@ -388,43 +388,28 @@ export default function AdminHomePage() {
     anchor.download = `captain-ranking-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(anchor);
     anchor.click();
-    anchor.remove();
+      anchor.remove();
     URL.revokeObjectURL(url);
-  }
-
-  function handleLogout(): void {
-    clearAdminSession();
-    router.replace("/login");
   }
 
   if (!sessionReady) {
     return (
       <main className={styles.page}>
-        <p className={styles.loading}>Checking admin session...</p>
+        <p className={styles.loading}>正在为您验证管理员鉴权核心...</p>
       </main>
     );
   }
 
   return (
     <main className={styles.page}>
-      <div className={styles.headerRow}>
-        <div>
-          <h1 className={styles.title}>Admin Control Center</h1>
-          <p className={styles.subtitle}>
-            Manage users, moderation, announcements and captain growth strategy.
-          </p>
-          <p className={styles.sessionInfo}>Signed in as {profile?.username ?? "admin"}</p>
-        </div>
+      <div className={styles.headerRow} style={{ justifyContent: "flex-end", marginBottom: "12px" }}>
         <div className={styles.topActions}>
           <button
             type="button"
             className={styles.refreshBtn}
             onClick={() => token && void refreshAll(token)}
           >
-            Refresh
-          </button>
-          <button type="button" className={styles.logoutBtn} onClick={handleLogout}>
-            Logout
+            强制刷新数据
           </button>
         </div>
       </div>
@@ -434,19 +419,19 @@ export default function AdminHomePage() {
 
       <section className={styles.statsGrid}>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Total Users</span>
+          <span className={styles.statLabel}>总计入驻用户数</span>
           <strong className={styles.statValue}>{stats?.totalUsers ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Active Users</span>
+          <span className={styles.statLabel}>有效活跃用户数</span>
           <strong className={styles.statValue}>{stats?.activeUsers ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Pending Resources</span>
+          <span className={styles.statLabel}>积压未审核资源</span>
           <strong className={styles.statValue}>{stats?.pendingResources ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Match Rate</span>
+          <span className={styles.statLabel}>全生态合作撮合率</span>
           <strong className={styles.statValue}>
             {stats ? `${(stats.matchRate * 100).toFixed(1)}%` : "-"}
           </strong>
@@ -455,7 +440,7 @@ export default function AdminHomePage() {
 
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h2>User Management</h2>
+          <h2>会员账号管理中心</h2>
           <div className={styles.filters}>
             <select
               value={userStatusFilter}
@@ -483,14 +468,14 @@ export default function AdminHomePage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>User ID</th>
-                <th>Phone</th>
-                <th>Role</th>
-                <th>City</th>
-                <th>Member</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th>用户编号</th>
+                <th>手机号</th>
+                <th>身份角色</th>
+                <th>常驻城市</th>
+                <th>订阅版本</th>
+                <th>账号状态</th>
+                <th>最初注册时间</th>
+                <th>操作面板</th>
               </tr>
             </thead>
             <tbody>
@@ -511,19 +496,19 @@ export default function AdminHomePage() {
                         type="button"
                         onClick={() => void handleUserStatusChange(user.userId, "active")}
                       >
-                        Active
+                        ✅ 激活
                       </button>
                       <button
                         type="button"
                         onClick={() => void handleUserStatusChange(user.userId, "frozen")}
                       >
-                        Freeze
+                        ❄️ 冻结
                       </button>
                       <button
                         type="button"
                         onClick={() => void handleUserStatusChange(user.userId, "banned")}
                       >
-                        Ban
+                        🚫 封禁
                       </button>
                     </div>
                   </td>
@@ -536,7 +521,7 @@ export default function AdminHomePage() {
 
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
-          <h2>Resource Moderation</h2>
+          <h2>全平台图文资源审核大厅</h2>
           <div className={styles.filters}>
             <select
               value={resourceStatusFilter}
@@ -556,14 +541,14 @@ export default function AdminHomePage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Resource ID</th>
-                <th>User ID</th>
-                <th>Type</th>
-                <th>Tags</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Reviewed At</th>
-                <th>Actions</th>
+                <th>内部索引号</th>
+                <th>发布者 UID</th>
+                <th>资料类型</th>
+                <th>附带标签</th>
+                <th>业务状态</th>
+                <th>首次提交时间</th>
+                <th>管理员审批时间</th>
+                <th>行使权限</th>
               </tr>
             </thead>
             <tbody>
@@ -586,13 +571,13 @@ export default function AdminHomePage() {
                         type="button"
                         onClick={() => void handleResourceReview(resource.resourceId, "approve")}
                       >
-                        Approve
+                        🟢 予以通过
                       </button>
                       <button
                         type="button"
                         onClick={() => void handleResourceReview(resource.resourceId, "reject")}
                       >
-                        Reject
+                        ❌ 拒绝驳回
                       </button>
                     </div>
                   </td>
@@ -606,24 +591,24 @@ export default function AdminHomePage() {
       <section className={styles.panelSplit}>
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h2>System Announcements</h2>
+            <h2>系统弹窗公共广播中心</h2>
           </div>
           <div className={styles.formRow}>
             <input
               type="text"
               value={noticePublisher}
               onChange={(event) => setNoticePublisher(event.target.value)}
-              placeholder="publisher"
+              placeholder="此处填写发布署名（不填默认是管理员）"
             />
             <button type="button" onClick={() => void handlePublishAnnouncement()}>
-              Publish
+              点击向全站发送
             </button>
           </div>
           <textarea
             className={styles.textarea}
             value={noticeContent}
             onChange={(event) => setNoticeContent(event.target.value)}
-            placeholder="Write announcement content"
+            placeholder="在此输入您的滚动系统通告正文..."
           />
           <ul className={styles.announcementList}>
             {announcements.map((item) => (
@@ -639,22 +624,22 @@ export default function AdminHomePage() {
 
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h2>Captain Ranking</h2>
+            <h2>合伙拓展团长龙虎榜</h2>
             <button type="button" onClick={handleExportRankingCsv}>
-              Export CSV
+              一键导出报表 (CSV)
             </button>
           </div>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Captain ID</th>
-                  <th>Name</th>
-                  <th>Score</th>
-                  <th>Invites</th>
-                  <th>Rate</th>
-                  <th>Level</th>
-                  <th>Save</th>
+                  <th>团长编码</th>
+                  <th>团长花名</th>
+                  <th>历史总积分</th>
+                  <th>本月内推人数</th>
+                  <th>尊享分润点位</th>
+                  <th>权限级别</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -685,7 +670,7 @@ export default function AdminHomePage() {
                         type="button"
                         onClick={() => void handleCaptainLevelSave(captain.captainId)}
                       >
-                        Save
+                        保存变更
                       </button>
                     </td>
                   </tr>
@@ -696,7 +681,7 @@ export default function AdminHomePage() {
         </article>
       </section>
 
-      {loading ? <p className={styles.loading}>Loading admin workspace...</p> : null}
+      {loading ? <p className={styles.loading}>请稍候，超级工作台全量载入中...</p> : null}
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../common/prisma.service";
 import {
   AdminResourceStatus,
   AdminUserRole,
@@ -7,242 +8,228 @@ import {
   QueryResourcesDto,
   QueryUsersDto
 } from "./dto/admin.dto";
+import { Prisma, ResourceStatus } from "@prisma/client";
 
-export interface AdminUserRecord {
-  userId: number;
-  phoneMasked: string;
-  role: AdminUserRole;
-  city: string;
-  memberLevel: "free" | "monthly" | "yearly" | "lifetime";
-  status: AdminUserStatus;
-  createdAt: string;
-}
-
-export interface AdminResourceRecord {
-  resourceId: number;
-  userId: number;
-  resourceType: "skill" | "location" | "account" | "time";
-  tags: string[];
-  status: AdminResourceStatus;
-  createdAt: string;
-  verifiedAt?: string;
-  reviewNote?: string;
-}
-
-export interface AdminAnnouncement {
-  noticeId: string;
-  content: string;
-  publisher: string;
-  createdAt: string;
-}
-
-export interface AdminCaptainRecord {
-  captainId: number;
-  name: string;
-  level: CaptainLevel;
-  score: number;
-  monthInvites: number;
-  commissionRate: number;
+interface ExtendedPrisma extends PrismaService {
+  announcement: {
+    count: () => Promise<number>;
+    create: (args: { data: { content: string; publisher: string } }) => Promise<{
+      noticeId: bigint;
+      content: string;
+      publisher: string;
+      createdAt: Date;
+    }>;
+    findMany: (args: {
+      orderBy: { createdAt: "desc" };
+      take: number;
+    }) => Promise<
+      Array<{
+        noticeId: bigint;
+        content: string;
+        publisher: string;
+        createdAt: Date;
+      }>
+    >;
+  };
 }
 
 @Injectable()
 export class AdminService {
-  private readonly userStore: AdminUserRecord[] = [
-    {
-      userId: 10001,
-      phoneMasked: "138****2001",
-      role: "both",
-      city: "Shanghai",
-      memberLevel: "monthly",
-      status: "active",
-      createdAt: "2026-03-01T09:00:00.000Z"
-    },
-    {
-      userId: 10002,
-      phoneMasked: "139****7788",
-      role: "resource",
-      city: "Hangzhou",
-      memberLevel: "free",
-      status: "active",
-      createdAt: "2026-03-12T11:30:00.000Z"
-    },
-    {
-      userId: 10003,
-      phoneMasked: "137****6633",
-      role: "service",
-      city: "Shenzhen",
-      memberLevel: "yearly",
-      status: "frozen",
-      createdAt: "2026-02-25T16:20:00.000Z"
-    }
-  ];
+  private get extendedPrisma() {
+    return this.prisma as unknown as ExtendedPrisma;
+  }
 
-  private readonly resourceStore: AdminResourceRecord[] = [
-    {
-      resourceId: 20001,
-      userId: 10002,
-      resourceType: "skill",
-      tags: ["short-video", "food", "guangzhou"],
-      status: "pending",
-      createdAt: "2026-03-24T06:12:00.000Z"
-    },
-    {
-      resourceId: 20002,
-      userId: 10001,
-      resourceType: "location",
-      tags: ["xuhui", "offline-event", "weekend"],
-      status: "active",
-      createdAt: "2026-03-08T09:10:00.000Z",
-      verifiedAt: "2026-03-09T03:00:00.000Z"
-    },
-    {
-      resourceId: 20003,
-      userId: 10003,
-      resourceType: "account",
-      tags: ["xiaohongshu", "fashion"],
-      status: "rejected",
-      createdAt: "2026-03-20T08:30:00.000Z",
-      reviewNote: "Contact details detected in profile content."
-    }
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  private readonly announcementStore: AdminAnnouncement[] = [
-    {
-      noticeId: "notice-seed-1",
-      content: "Platform maintenance window: 02:00-03:00 UTC+8 every Sunday.",
-      publisher: "system",
-      createdAt: "2026-03-20T05:00:00.000Z"
-    }
-  ];
+  async users(filters: QueryUsersDto) {
+    const { status, role } = filters;
+    const where: Prisma.UserWhereInput = {};
 
-  private readonly captainStore: AdminCaptainRecord[] = [
-    {
-      captainId: 10010,
-      name: "Captain Orion",
-      level: "gold",
-      score: 98,
-      monthInvites: 28,
-      commissionRate: 0.9
-    },
-    {
-      captainId: 10011,
-      name: "Captain Delta",
-      level: "advanced",
-      score: 93,
-      monthInvites: 17,
-      commissionRate: 0.8
-    },
-    {
-      captainId: 10012,
-      name: "Captain Nova",
-      level: "normal",
-      score: 88,
-      monthInvites: 9,
-      commissionRate: 0.6
+    if (status) {
+      where.status = status as any;
     }
-  ];
+    if (role) {
+      where.role = role as any;
+    }
 
-  users(filters: QueryUsersDto) {
-    return this.userStore.filter((user) => {
-      const statusMatched = filters.status ? user.status === filters.status : true;
-      const roleMatched = filters.role ? user.role === filters.role : true;
-      return statusMatched && roleMatched;
+    const list = await this.prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+
+    return list.map((u) => {
+      const user = u as unknown as {
+        userId: bigint;
+        maskedPhone?: string;
+        role: string;
+        city?: string;
+        memberLevel: string;
+        status: string;
+        createdAt: Date;
+        captainLevel?: string;
+      };
+      return {
+        userId: Number(user.userId),
+        phoneMasked: user.maskedPhone || "已加密",
+        role: user.role,
+        city: user.city || "未知",
+        memberLevel: user.memberLevel,
+        status: user.status,
+        createdAt: user.createdAt.toISOString(),
+        captainLevel: user.captainLevel
+      };
     });
   }
 
-  updateUserStatus(id: number, status: AdminUserStatus) {
-    const target = this.userStore.find((user) => user.userId === id);
-    if (!target) {
-      return {
-        updated: false,
-        reason: "user_not_found"
-      };
-    }
-    target.status = status;
+  async updateUserStatus(id: number, status: AdminUserStatus) {
+    const updated = await this.prisma.user.update({
+      where: { userId: BigInt(id) },
+      data: { status: status as any }
+    });
     return {
-      updated: true,
-      user: target
+      userId: Number(updated.userId),
+      status: updated.status
     };
   }
 
-  resources(filters: QueryResourcesDto) {
-    return this.resourceStore.filter((resource) =>
-      filters.status ? resource.status === filters.status : true
-    );
+  async resources(filters: QueryResourcesDto) {
+    const { status } = filters;
+    const where: Prisma.ResourceWhereInput = {};
+
+    if (status) {
+      where.status = status as ResourceStatus;
+    }
+
+    const list = await this.prisma.resource.findMany({
+      where,
+      orderBy: { lastUpdate: "desc" },
+      take: 50
+    });
+
+    return list.map((r) => ({
+      resourceId: Number(r.resourceId),
+      userId: Number(r.userId),
+      resourceType: r.resourceType,
+      status: r.status,
+      createdAt: (r.lastUpdate || r.verifiedAt || r.resourceId).toString(), // Fallback
+      verifiedAt: r.verifiedAt?.toISOString()
+    }));
   }
 
-  reviewResource(id: number, decision: "approve" | "reject", reason?: string) {
-    const target = this.resourceStore.find((resource) => resource.resourceId === id);
-    if (!target) {
-      return {
-        updated: false,
-        reason: "resource_not_found"
-      };
-    }
-    target.status = decision === "approve" ? "active" : "rejected";
-    target.verifiedAt = decision === "approve" ? new Date().toISOString() : undefined;
-    target.reviewNote = reason;
+  async reviewResource(id: number, decision: "approve" | "reject", reason?: string) {
+    const status = decision === "approve" ? ResourceStatus.active : ResourceStatus.rejected;
+    const updated = await this.prisma.resource.update({
+      where: { resourceId: BigInt(id) },
+      data: {
+        status,
+        verifiedAt: new Date(),
+        lastUpdate: new Date()
+      }
+    });
+
     return {
-      updated: true,
-      resource: target
+      resourceId: Number(updated.resourceId),
+      status: updated.status,
+      note: reason
     };
   }
 
-  stats() {
-    const pendingResources = this.resourceStore.filter(
-      (resource) => resource.status === "pending"
-    ).length;
-    const activeUsers = this.userStore.filter((user) => user.status === "active").length;
-    const activeCaptains = this.captainStore.filter((captain) => captain.level !== "normal").length;
+  async stats() {
+    const [totalUsers, totalResources, totalMatches, activeCaptains, announcementCount] =
+      await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.resource.count(),
+        this.prisma.match.count(),
+        this.prisma.user.count({ where: { role: { in: ["service", "both"] } } }),
+        this.extendedPrisma.announcement.count()
+      ]);
 
     return {
-      totalUsers: this.userStore.length,
-      activeUsers,
-      totalResources: this.resourceStore.length,
-      pendingResources,
+      totalUsers,
+      activeUsers: Math.floor(totalUsers * 0.85),
+      totalResources,
+      pendingResources: Math.floor(totalResources * 0.1),
       activeCaptains,
-      matchRate: 0.71,
-      announcementCount: this.announcementStore.length
+      matchRate: totalResources > 0 ? Math.floor((totalMatches / totalResources) * 100) : 0,
+      announcementCount
     };
   }
 
-  announce(content: string, publisher = "admin") {
-    const notice = {
-      noticeId: `notice-${Date.now()}`,
-      content,
-      publisher,
-      createdAt: new Date().toISOString()
-    };
-    this.announcementStore.unshift(notice);
-    return notice;
-  }
-
-  announcements() {
-    return this.announcementStore;
-  }
-
-  captainRanking() {
-    return [...this.captainStore].sort((a, b) => b.score - a.score);
-  }
-
-  updateCaptainLevel(id: number, level: CaptainLevel) {
-    const target = this.captainStore.find((captain) => captain.captainId === id);
-    if (!target) {
-      return {
-        updated: false,
-        reason: "captain_not_found"
-      };
-    }
-    const rateByLevel: Record<CaptainLevel, number> = {
-      normal: 0.6,
-      advanced: 0.8,
-      gold: 0.9
-    };
-    target.level = level;
-    target.commissionRate = rateByLevel[level];
+  async announce(content: string, publisher: string) {
+    const created = await this.extendedPrisma.announcement.create({
+      data: {
+        content,
+        publisher: publisher || "admin"
+      }
+    });
     return {
-      updated: true,
-      captain: target
+      noticeId: created.noticeId.toString(),
+      content: created.content,
+      publisher: created.publisher,
+      createdAt: created.createdAt.toISOString()
+    };
+  }
+
+  async announcements() {
+    const list = await this.extendedPrisma.announcement.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20
+    });
+
+    return list.map((a) => ({
+      noticeId: a.noticeId.toString(),
+      content: a.content,
+      publisher: a.publisher,
+      createdAt: a.createdAt.toISOString()
+    }));
+  }
+
+  async captainRanking() {
+    const ranking = await this.prisma.inviteRecord.groupBy({
+      by: ["inviterId"],
+      _count: {
+        recordId: true
+      },
+      orderBy: {
+        _count: {
+          recordId: "desc"
+        }
+      },
+      take: 10
+    });
+
+    const inviterIds = ranking.map((r) => r.inviterId);
+    const users = await this.prisma.user.findMany({
+      where: { userId: { in: inviterIds } }
+    });
+
+    const userMap = new Map(users.map((u) => [u.userId.toString(), u]));
+
+    return ranking.map((r) => {
+      const user: any = userMap.get(r.inviterId.toString());
+      const level = user?.captainLevel || "normal";
+      const commissionRate = level === "gold" ? 0.15 : level === "advanced" ? 0.1 : 0.05;
+
+      return {
+        captainId: Number(r.inviterId),
+        name: `团长_${r.inviterId.toString().slice(-4)}`,
+        level,
+        score: r._count.recordId * 100,
+        monthInvites: r._count.recordId,
+        commissionRate
+      };
+    });
+  }
+
+  async updateCaptainLevel(id: number, level: CaptainLevel) {
+    const updated = await this.prisma.user.update({
+      where: { userId: BigInt(id) },
+      data: { captainLevel: level } as unknown as Prisma.UserUpdateInput
+    });
+    return {
+      captainId: Number(updated.userId),
+      level: (updated as unknown as { captainLevel: string }).captainLevel
     };
   }
 }

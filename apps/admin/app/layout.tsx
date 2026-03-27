@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import React from "react";
+import { AdminNav } from "./AdminNav";
 import { MswProvider } from "../src/components/msw-provider";
 import { QueryProvider } from "../src/components/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Resource Platform - Admin Console",
-  description: "Operations and moderation console"
+  title: "AI 资源共享平台 - 管理控制台",
+  description: "全栈业务运营与审核后台"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,26 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MswProvider />
         <QueryProvider>
           <div className="admin-shell">
-            <nav className="admin-nav glass">
-              <Link className="nav-item" href="/">
-                首页
-              </Link>
-              <Link className="nav-item" href="/dashboard">
-                统计看板
-              </Link>
-              <Link className="nav-item" href="/users">
-                用户列表
-              </Link>
-              <Link className="nav-item" href="/resources/review">
-                资源审核
-              </Link>
-              <Link className="nav-item" href="/captain/ranking">
-                团长排行
-              </Link>
-            </nav>
+            <AdminNav />
             {children}
           </div>
         </QueryProvider>
+
       </body>
     </html>
   );

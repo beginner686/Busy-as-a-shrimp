@@ -105,7 +105,7 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 mb-6 border-b border-white/20 bg-white/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] backdrop-blur-md">
+    <header className="sticky top-0 z-50 mb-6 border-b border-white/5 bg-zinc-950/60 shadow-[0_4px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
       <div className="flex h-16 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <div className="md:hidden">
@@ -115,13 +115,13 @@ export function TopNav() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="rounded-full border border-white/30 bg-white/70 text-zinc-700 shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-100/70 hover:text-zinc-900 md:hidden"
+                  className="rounded-full border border-white/10 bg-zinc-900 text-zinc-100 shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-800 hover:text-white md:hidden"
                   aria-label="打开导航菜单"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
               </DrawerTrigger>
-              <DrawerContent className="border-white/40 bg-white/85 backdrop-blur-xl">
+              <DrawerContent className="border-white/10 bg-zinc-900/95 text-zinc-100 shadow-2xl backdrop-blur-xl">
                 <DrawerHeader>
                   <DrawerTitle>导航菜单</DrawerTitle>
                 </DrawerHeader>
@@ -134,8 +134,8 @@ export function TopNav() {
                         className={cn(
                           "justify-start rounded-full transition-all duration-200 ease-out",
                           isActivePath(item.href)
-                            ? "bg-zinc-900 text-white shadow-sm"
-                            : "text-zinc-600 hover:bg-zinc-100/70 hover:text-zinc-900"
+                            ? "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
+                            : "text-zinc-400 hover:bg-white/10 hover:text-white"
                         )}
                       >
                         <Link
@@ -158,7 +158,7 @@ export function TopNav() {
                       <DrawerClose asChild>
                         <Button
                           asChild
-                          className="mt-2 justify-start rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-sm ring-1 ring-inset ring-white/10 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-md"
+                          className="mt-2 justify-start rounded-full bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]"
                         >
                           <Link href="/resource/new">
                             <Plus className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function TopNav() {
                         <Button
                           asChild
                           variant="ghost"
-                          className="justify-start rounded-full text-zinc-600 transition-all duration-200 ease-out hover:bg-zinc-100/70 hover:text-zinc-900"
+                          className="justify-start rounded-full text-zinc-400 transition-all duration-200 ease-out hover:bg-white/10 hover:text-white"
                         >
                           <Link href="/profile">
                             <UserCircle2 className="h-4 w-4" />
@@ -181,7 +181,7 @@ export function TopNav() {
                       <Button
                         variant="ghost"
                         onClick={onLogout}
-                        className="justify-start rounded-full text-zinc-600 transition-all duration-200 ease-out hover:bg-rose-50 hover:text-rose-600"
+                        className="justify-start rounded-full text-zinc-400 transition-all duration-200 ease-out hover:bg-white/10 hover:text-white"
                       >
                         <LogOut className="h-4 w-4" />
                         退出登录
@@ -191,7 +191,7 @@ export function TopNav() {
                     <DrawerClose asChild>
                       <Button
                         asChild
-                        className="mt-2 justify-start rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-50"
+                        className="mt-2 justify-start rounded-full border border-white/10 bg-zinc-900 text-white transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-800"
                       >
                         <Link href="/auth">
                           <LogIn className="h-4 w-4" />
@@ -207,9 +207,9 @@ export function TopNav() {
 
           <Link
             href="/"
-            className="rounded-full px-3 py-1.5 text-lg font-bold tracking-tighter text-zinc-900 transition-all duration-200 ease-out hover:bg-zinc-100/60"
+            className="rounded-full px-3 py-1.5 text-lg font-bold tracking-tighter transition-all duration-200 ease-out hover:bg-white/5"
           >
-            <span className="bg-gradient-to-b from-zinc-900 to-zinc-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent">
               虾忙
             </span>
           </Link>
@@ -222,9 +222,8 @@ export function TopNav() {
                 onMouseEnter={item.href === "/match/list" ? prefetchMatchListOnIntent : undefined}
                 onFocus={item.href === "/match/list" ? prefetchMatchListOnIntent : undefined}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium text-zinc-500 transition-all duration-200 ease-out hover:bg-zinc-100/50 hover:text-zinc-900",
-                  isActivePath(item.href) &&
-                    "bg-white/75 text-zinc-900 shadow-sm ring-1 ring-zinc-200/70"
+                  "rounded-full px-3 py-1.5 text-sm font-medium text-zinc-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-white",
+                  isActivePath(item.href) && "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
                 )}
               >
                 {item.label}
@@ -238,7 +237,7 @@ export function TopNav() {
             <>
               <Button
                 asChild
-                className="hidden rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-sm ring-1 ring-inset ring-white/10 transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-md sm:inline-flex"
+                className="hidden rounded-full bg-cyan-500 text-black font-medium shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] sm:inline-flex"
               >
                 <Link href="/resource/new">
                   <Plus className="h-4 w-4" />
@@ -250,29 +249,29 @@ export function TopNav() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="h-10 gap-2 rounded-full border border-white/30 bg-white/70 px-2 text-zinc-700 shadow-sm transition-all duration-200 ease-out hover:bg-zinc-100/70 hover:text-zinc-900"
+                    className="h-10 gap-2 rounded-full border border-white/10 bg-zinc-900 px-2 text-white shadow-sm transition-all duration-200 ease-out hover:bg-zinc-800 hover:text-white"
                   >
-                    <Avatar className="h-8 w-8 border border-zinc-200/80">
+                    <Avatar className="h-8 w-8 border border-white/15">
                       <AvatarFallback>{userInitial}</AvatarFallback>
                     </Avatar>
-                    <span className="hidden text-sm text-zinc-600 sm:inline">
+                    <span className="hidden text-sm text-zinc-300 sm:inline">
                       {maskPhone(phone)}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-56 rounded-2xl border border-white/40 bg-white/80 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] backdrop-blur-xl"
+                  className="w-56 rounded-2xl border border-white/10 bg-zinc-900/95 text-zinc-100 shadow-2xl backdrop-blur-xl"
                 >
                   <DropdownMenuLabel className="space-y-1">
                     <div className="flex items-center gap-2 text-sm">
                       <UserCircle2 className="h-4 w-4" />
                       {maskPhone(phone)}
                     </div>
-                    <p className="text-xs font-normal text-zinc-500">{getRoleLabel(role)}</p>
+                    <p className="text-xs font-normal text-zinc-400">{getRoleLabel(role)}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
                     <Link href="/profile" className="flex items-center gap-2">
                       <UserCircle2 className="h-4 w-4" />
                       个人资料
@@ -281,7 +280,7 @@ export function TopNav() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={onLogout}
-                    className="flex items-center gap-2 text-zinc-600 focus:bg-rose-50 focus:text-rose-600"
+                    className="flex items-center gap-2 text-zinc-200 hover:bg-white/10 focus:bg-white/10 focus:text-white"
                   >
                     <LogOut className="h-4 w-4" />
                     退出登录
@@ -292,7 +291,7 @@ export function TopNav() {
           ) : (
             <Button
               asChild
-              className="rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-50"
+              className="rounded-full border border-white/10 bg-zinc-900 text-white transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-800"
             >
               <Link href="/auth">
                 <LogIn className="h-4 w-4" />

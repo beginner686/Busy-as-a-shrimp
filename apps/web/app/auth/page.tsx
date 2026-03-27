@@ -18,10 +18,17 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useUserStore } from "@/stores/user-store";
 import { getErrorMessage } from "@/utils/error-message";
+import type { AdminLoginResult } from "@/api/user-api";
 
 const formSchema = z.object({
   phone: z
@@ -38,7 +45,13 @@ const formSchema = z.object({
   smsCode: z.string().regex(/^\d{4,6}$/, "短信验证码需为4-6位数字")
 });
 
+const adminFormSchema = z.object({
+  username: z.string().min(1, "请输入用户名"),
+  password: z.string().min(1, "请输入密码")
+});
+
 type FormValues = z.infer<typeof formSchema>;
+type AdminFormValues = z.infer<typeof adminFormSchema>;
 
 export default function AuthPage() {
   const captchaRef = useRef<CaptchaInputRef>(null);
@@ -47,6 +60,7 @@ export default function AuthPage() {
   const [sendingSms, setSendingSms] = useState(false);
   const [smsCooldown, setSmsCooldown] = useState(0);
   const [redirectTo, setRedirectTo] = useState("/");
+  const [loginMode, setLoginMode] = useState<"user" | "admin">("user");
   const setLogin = useUserStore((state) => state.setLogin);
   const router = useRouter();
 
@@ -77,6 +91,13 @@ export default function AuthPage() {
     }
   });
 
+  const adminForm = useForm<AdminFormValues>({
+    defaultValues: {
+      username: "",
+      password: ""
+    }
+  });
+
   const handleCaptchaIdChange = useCallback(
     (captchaId: string) => {
       form.setValue("captchaId", captchaId, { shouldValidate: false, shouldDirty: false });
@@ -92,13 +113,7 @@ export default function AuthPage() {
     for (const issue of issues) {
       const field = issue.path[0];
       if (field === "phone" || field === "captchaValue" || field === "smsCode") {
-        form.setError(field, {
-          type: "manual",
-          message: issue.message
-        });
-      }
-      if (field === "captchaId") {
-        form.setError("captchaValue", {
+        form.setError(field as any, {
           type: "manual",
           message: issue.message
         });
@@ -129,23 +144,15 @@ export default function AuthPage() {
         captchaId
       });
       setSmsCooldown(60);
-      if (sendResult.code) {
-        form.setValue("smsCode", sendResult.code.slice(0, 6), { shouldValidate: true });
-      }
       toast({
         title: "短信发送成功",
         description: sendResult.code
           ? `测试验证码：${sendResult.code}`
-          : "请输入短信验证码继续登录（本地调试可使用 123456）。"
+          : "请输入短信验证码继续登录。"
       });
       smsInputRef.current?.focus();
     } catch (error) {
       const message = getErrorMessage(error);
-      if (message.includes("图形验证码") || message.toLowerCase().includes("captcha")) {
-        form.setValue("captchaValue", "");
-        form.setValue("captchaId", "");
-        void captchaRef.current?.refreshCaptcha();
-      }
       toast({
         variant: "destructive",
         title: "短信发送失败",
@@ -163,7 +170,7 @@ export default function AuthPage() {
       toast({
         variant: "destructive",
         title: "表单校验失败",
-        description: "请检查手机号、图形验证码和短信验证码。"
+        description: "请检查您的输入。"
       });
       return;
     }
@@ -194,6 +201,34 @@ export default function AuthPage() {
     }
   }
 
+  async function onAdminSubmit(values: AdminFormValues) {
+    setSubmitting(true);
+    try {
+      const result = await (getUserApi() as any).adminLogin({
+        username: values.username,
+        password: values.password
+      });
+
+      toast({
+        title: "管理员认证成功",
+        description: "正在跳转至后台管理系统..."
+      });
+
+      const url = new URL("http://localhost:3002/login");
+      url.searchParams.set("token", result.token);
+      url.searchParams.set("profile", JSON.stringify(result.profile));
+      window.location.href = url.toString();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "管理员登录失败",
+        description: getErrorMessage(error)
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <section className="relative isolate -mx-4 flex min-h-[calc(100vh-6rem)] items-center justify-center overflow-hidden bg-zinc-50 px-4 py-12 sm:px-6">
       <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -203,149 +238,208 @@ export default function AuthPage() {
 
       <div className="relative z-10 w-full max-w-[34rem] rounded-[2rem] bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-100 backdrop-blur-xl sm:p-10">
         <header className="space-y-2 pb-7">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">免密登录 / 注册</h1>
-          <p className="text-sm leading-6 text-zinc-500">手机号验证码登录</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">虾忙 AI 资源共享</h1>
+          <p className="text-sm leading-6 text-zinc-500">身份验证系统</p>
         </header>
 
-        <div>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="phone"
-                rules={{
-                  validate: (value) => {
-                    const result = formSchema.shape.phone.safeParse(value);
-                    return result.success || result.error.issues[0]?.message || "请输入手机号码";
-                  }
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>手机号</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          {...field}
-                          type="tel"
-                          inputMode="numeric"
-                          autoComplete="tel-national"
-                          maxLength={11}
-                          placeholder="请输入手机号"
-                          className="h-11 rounded-xl border border-transparent bg-zinc-50/50 pl-9 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
-                          onChange={(event) => {
-                            const next = event.target.value.replace(/\D/g, "").slice(0, 11);
-                            field.onChange(next);
-                          }}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <Tabs defaultValue="user" onValueChange={(v) => setLoginMode(v as "user" | "admin")}>
+          <TabsList className="mb-8 grid w-full grid-cols-2">
+            <TabsTrigger value="user">普通用户</TabsTrigger>
+            <TabsTrigger value="admin">后台管理</TabsTrigger>
+          </TabsList>
 
-              <FormField
-                control={form.control}
-                name="captchaValue"
-                rules={{
-                  validate: (value) => {
-                    const result = formSchema.shape.captchaValue.safeParse(value);
-                    return result.success || result.error.issues[0]?.message || "请输入图形验证码";
-                  }
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>图形验证码</FormLabel>
-                    <FormControl>
-                      <CaptchaInput
-                        ref={captchaRef}
-                        value={field.value}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        placeholder="输入4位图形验证码"
-                        maxLength={4}
-                        className="h-11 rounded-xl border border-transparent bg-zinc-50/50 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
-                        onCaptchaIdChange={handleCaptchaIdChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="smsCode"
-                rules={{
-                  validate: (value) => {
-                    const result = formSchema.shape.smsCode.safeParse(value);
-                    return result.success || result.error.issues[0]?.message || "请输入短信验证码";
-                  }
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>短信验证码</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <MessageSquare className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <TabsContent value="user">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  rules={{
+                    validate: (value) => {
+                      const result = formSchema.shape.phone.safeParse(value);
+                      return result.success || result.error.issues[0]?.message || "请输入手机号码";
+                    }
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>手机号</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Phone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
                             {...field}
-                            ref={(element) => {
-                              field.ref(element);
-                              smsInputRef.current = element;
-                            }}
                             type="tel"
                             inputMode="numeric"
-                            autoComplete="one-time-code"
-                            maxLength={6}
-                            placeholder="请输入短信验证码"
+                            autoComplete="tel-national"
+                            maxLength={11}
+                            placeholder="请输入手机号"
                             className="h-11 rounded-xl border border-transparent bg-zinc-50/50 pl-9 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
                             onChange={(event) => {
-                              const next = event.target.value.replace(/\D/g, "").slice(0, 6);
+                              const next = event.target.value.replace(/\D/g, "").slice(0, 11);
                               field.onChange(next);
                             }}
                           />
                         </div>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="h-11 min-w-[132px] shrink-0 rounded-xl border border-zinc-200 bg-white/80 px-3 text-zinc-700 shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.4)] transition-all duration-200 hover:-translate-y-[1px] hover:bg-zinc-100/80 hover:text-zinc-900 hover:shadow-[0_8px_20px_rgba(24,24,27,0.08)] disabled:translate-y-0 disabled:opacity-60"
-                          disabled={sendingSms || smsCooldown > 0}
-                          onClick={() => void onSendSms()}
-                        >
-                          {sendingSms ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              发送中...
-                            </>
-                          ) : smsCooldown > 0 ? (
-                            `${smsCooldown}s后重试`
-                          ) : (
-                            "获取短信验证码"
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <p className="pt-1 text-xs text-zinc-500">未注册的手机号验证后将自动创建账号</p>
+                <FormField
+                  control={form.control}
+                  name="captchaValue"
+                  rules={{
+                    validate: (value) => {
+                      const result = formSchema.shape.captchaValue.safeParse(value);
+                      return result.success || result.error.issues[0]?.message || "请输入图形验证码";
+                    }
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>图形验证码</FormLabel>
+                      <FormControl>
+                        <CaptchaInput
+                          ref={captchaRef}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          placeholder="输入4位图形验证码"
+                          maxLength={4}
+                          className="h-11 rounded-xl border border-transparent bg-zinc-50/50 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
+                          onCaptchaIdChange={handleCaptchaIdChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <Button
-                type="submit"
-                className="h-12 w-full rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_18px_32px_rgba(24,24,27,0.28),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-70"
-                disabled={submitting}
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {submitting ? "登录中..." : "登录 / 注册"}
-              </Button>
-            </form>
-          </Form>
-        </div>
+                <FormField
+                  control={form.control}
+                  name="smsCode"
+                  rules={{
+                    validate: (value) => {
+                      const result = formSchema.shape.smsCode.safeParse(value);
+                      return result.success || result.error.issues[0]?.message || "请输入短信验证码";
+                    }
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>短信验证码</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <MessageSquare className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              {...field}
+                              ref={(element) => {
+                                field.ref(element);
+                                smsInputRef.current = element;
+                              }}
+                              type="tel"
+                              inputMode="numeric"
+                              autoComplete="one-time-code"
+                              maxLength={6}
+                              placeholder="请输入短信验证码"
+                              className="h-11 rounded-xl border border-transparent bg-zinc-50/50 pl-9 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
+                              onChange={(event) => {
+                                const next = event.target.value.replace(/\D/g, "").slice(0, 6);
+                                field.onChange(next);
+                              }}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="h-11 min-w-[132px] shrink-0 rounded-xl border border-zinc-200 bg-white/80 px-3 text-zinc-700 shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.4)] transition-all duration-200 hover:-translate-y-[1px] hover:bg-zinc-100/80 hover:text-zinc-900 hover:shadow-[0_8px_20px_rgba(24,24,27,0.08)] disabled:translate-y-0 disabled:opacity-60"
+                            disabled={sendingSms || smsCooldown > 0}
+                            onClick={() => void onSendSms()}
+                          >
+                            {sendingSms ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                发送中...
+                              </>
+                            ) : smsCooldown > 0 ? (
+                              `${smsCooldown}s后重试`
+                            ) : (
+                              "获取短信验证码"
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="pt-1 text-xs text-zinc-500">未注册的手机号验证后将自动创建账号</p>
+
+                <Button
+                  type="submit"
+                  className="h-12 w-full rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_18px_32px_rgba(24,24,27,0.28),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-70"
+                  disabled={submitting}
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {submitting ? "登录中..." : "登录 / 注册"}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+
+          <TabsContent value="admin">
+            <Form {...adminForm}>
+              <form onSubmit={adminForm.handleSubmit(onAdminSubmit)} className="space-y-4">
+                <FormField
+                  control={adminForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>账号</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="管理员账号"
+                          className="h-11 rounded-xl border border-transparent bg-zinc-50/50 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={adminForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>密码</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          {...field} 
+                          placeholder="登录密码"
+                          className="h-11 rounded-xl border border-transparent bg-zinc-50/50 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button 
+                  type="submit" 
+                  className="h-12 w-full rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_18px_32px_rgba(24,24,27,0.28),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-70"
+                  disabled={submitting}
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "进入管理系统"}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+        </Tabs>
+
 
         <footer className="pt-5">
           <Button

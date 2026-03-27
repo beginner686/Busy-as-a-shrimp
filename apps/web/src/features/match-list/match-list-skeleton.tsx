@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function MatchSkeletonCard() {
   return (
-    <Card className="border-border/70 bg-white/70 shadow-sm">
+    <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
       <CardHeader className="space-y-3 pb-3">
         <div className="flex items-center justify-between">
           <Skeleton className="h-5 w-40" />

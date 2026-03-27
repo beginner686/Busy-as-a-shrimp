@@ -11,7 +11,8 @@ import {
   QueryUsersDto,
   ReviewResourceDto,
   UpdateCaptainLevelDto,
-  UpdateUserStatusDto
+  UpdateUserStatusDto,
+  CaptainLevel
 } from "./dto/admin.dto";
 
 @UseGuards(AdminAuthGuard)
@@ -34,58 +35,58 @@ export class AdminController {
   }
 
   @Get("users")
-  users(@Query() query: QueryUsersDto) {
-    return ok(this.adminService.users(query));
+  async users(@Query() query: QueryUsersDto) {
+    return ok(await this.adminService.users(query));
   }
 
   @Put("users/:id/status")
-  updateUserStatus(@Param("id") id: string, @Body() payload: UpdateUserStatusDto) {
+  async updateUserStatus(@Param("id") id: string, @Body() payload: UpdateUserStatusDto) {
     return ok(
-      this.adminService.updateUserStatus(Number(id), payload.status),
+      await this.adminService.updateUserStatus(Number(id), payload.status),
       "User status updated"
     );
   }
 
   @Get("resources")
-  resources(@Query() query: QueryResourcesDto) {
-    return ok(this.adminService.resources(query));
+  async resources(@Query() query: QueryResourcesDto) {
+    return ok(await this.adminService.resources(query));
   }
 
   @Put("resources/:id")
-  reviewResource(@Param("id") id: string, @Body() payload: ReviewResourceDto) {
+  async reviewResource(@Param("id") id: string, @Body() payload: ReviewResourceDto) {
     return ok(
-      this.adminService.reviewResource(Number(id), payload.decision, payload.reason),
+      await this.adminService.reviewResource(Number(id), payload.decision, payload.reason),
       "Resource review completed"
     );
   }
 
   @Get("stats")
-  stats() {
-    return ok(this.adminService.stats());
+  async stats() {
+    return ok(await this.adminService.stats());
   }
 
   @Post("announce")
-  announce(@Body() payload: PublishAnnouncementDto) {
+  async announce(@Body() payload: PublishAnnouncementDto) {
     return ok(
-      this.adminService.announce(payload.content, payload.publisher),
+      await this.adminService.announce(payload.content, payload.publisher || "admin"),
       "Announcement published"
     );
   }
 
   @Get("announcements")
-  announcements() {
-    return ok(this.adminService.announcements());
+  async announcements() {
+    return ok(await this.adminService.announcements());
   }
 
   @Get("captain/ranking")
-  captainRanking() {
-    return ok(this.adminService.captainRanking());
+  async captainRanking() {
+    return ok(await this.adminService.captainRanking());
   }
 
   @Put("captain/:id/level")
-  updateCaptainLevel(@Param("id") id: string, @Body() payload: UpdateCaptainLevelDto) {
+  async updateCaptainLevel(@Param("id") id: string, @Body() payload: UpdateCaptainLevelDto) {
     return ok(
-      this.adminService.updateCaptainLevel(Number(id), payload.level),
+      await this.adminService.updateCaptainLevel(Number(id), payload.level as CaptainLevel),
       "Captain level updated"
     );
   }
