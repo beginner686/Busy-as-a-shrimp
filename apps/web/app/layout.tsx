@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN" className={cn("font-sans", inter.variable)}>
-      <body className="min-h-screen bg-zinc-50 text-zinc-950">
+      <body className="min-h-screen bg-zinc-950 text-zinc-50 antialiased selection:bg-cyan-500/30">
         <MswProvider>
           <QueryProvider>
             <div className="mx-auto min-h-screen max-w-6xl px-4 py-4 md:px-6 md:py-5">

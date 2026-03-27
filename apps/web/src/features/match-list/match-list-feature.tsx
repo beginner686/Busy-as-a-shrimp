@@ -131,18 +131,18 @@ function getStatusMeta(status: MatchStatus): { label: string; className: string 
   if (status === "confirmed") {
     return {
       label: "已确认",
-      className: "border-emerald-200 bg-emerald-100 text-emerald-700"
+      className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
     };
   }
   if (status === "invalid") {
     return {
       label: "已失效",
-      className: "border-slate-200 bg-slate-100 text-slate-600"
+      className: "border-white/5 bg-zinc-800 text-zinc-400"
     };
   }
   return {
     label: "待确认",
-    className: "border-amber-200 bg-amber-100 text-amber-700"
+    className: "border-amber-500/20 bg-amber-500/10 text-amber-400"
   };
 }
 
@@ -155,16 +155,19 @@ function parseStatusFilter(value: string | null): MatchStatusFilter {
 
 function LoginRequiredCard({ hydrated }: { hydrated: boolean }) {
   return (
-    <Card className="rounded-3xl border-white/70 bg-white/70 shadow-xl backdrop-blur-xl">
+    <Card className="rounded-3xl border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
       <CardHeader>
-        <CardTitle className="text-2xl">匹配列表</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-2xl text-zinc-50">匹配列表</CardTitle>
+        <CardDescription className="text-zinc-400">
           {hydrated ? "请先登录后查看匹配结果。" : "正在初始化页面..."}
         </CardDescription>
       </CardHeader>
       {hydrated ? (
         <CardFooter>
-          <Button asChild>
+          <Button
+            asChild
+            className="bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+          >
             <Link href="/auth">去登录</Link>
           </Button>
         </CardFooter>
@@ -310,12 +313,14 @@ function MatchListContent() {
 
   return (
     <section className="space-y-4">
-      <Card className="border-border/70 bg-white/75 shadow-sm backdrop-blur">
+      <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
         <CardHeader className="space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
-              <CardTitle className="text-xl">匹配列表</CardTitle>
-              <CardDescription>高契合度优先展示，确认后才开放联系方式。</CardDescription>
+              <CardTitle className="text-xl text-zinc-50">匹配列表</CardTitle>
+              <CardDescription className="text-zinc-400">
+                高契合度优先展示，确认后才开放联系方式。
+              </CardDescription>
             </div>
             <Button
               type="button"
@@ -380,12 +385,15 @@ function MatchListContent() {
       ) : null}
 
       {!error && filtered.length === 0 ? (
-        <Card className="border-border/70 bg-white/70 shadow-sm">
+        <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
           <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-            <Sparkles className="h-8 w-8 text-muted-foreground" />
-            <h3 className="text-base font-semibold text-slate-900">暂无匹配结果</h3>
-            <p className="text-sm text-muted-foreground">先发布资源，系统会自动尝试为你匹配。</p>
-            <Button asChild>
+            <Sparkles className="h-8 w-8 text-cyan-500/50" />
+            <h3 className="text-base font-semibold text-zinc-50">暂无匹配结果</h3>
+            <p className="text-sm text-zinc-400">先发布资源，系统会自动尝试为你匹配。</p>
+            <Button
+              asChild
+              className="bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+            >
               <Link href="/resource/new">去发布资源</Link>
             </Button>
           </CardContent>
@@ -414,15 +422,17 @@ function MatchListContent() {
                     whileHover={{ y: -2, scale: 1.003 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                   >
-                    <Card className="border-border/70 bg-white/80 shadow-sm backdrop-blur">
+                    <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
                       <CardHeader className="space-y-2 pb-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <CardTitle className="text-base">匹配任务 #{item.matchId}</CardTitle>
+                          <CardTitle className="text-base text-zinc-50">
+                            匹配任务 #{item.matchId}
+                          </CardTitle>
                           <Badge variant="outline" className={statusMeta.className}>
                             {statusMeta.label}
                           </Badge>
                         </div>
-                        <CardDescription>
+                        <CardDescription className="text-zinc-400">
                           需求 {item.needId} 对应资源 {item.resourceId}
                         </CardDescription>
                       </CardHeader>
@@ -430,14 +440,14 @@ function MatchListContent() {
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-slate-800">契合度</span>
-                            <span className="font-semibold text-slate-900">
+                            <span className="font-medium text-zinc-400">契合度</span>
+                            <span className="font-semibold text-zinc-50">
                               {item.score.toFixed(1)} 分
                             </span>
                           </div>
-                          <div className="h-2 w-full rounded-full bg-slate-100">
+                          <div className="h-2 w-full rounded-full bg-zinc-800">
                             <motion.div
-                              className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400"
+                              className="h-2 rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
                               initial={{ width: 0 }}
                               animate={{ width: `${scoreWidth}%` }}
                               transition={{ duration: 0.35, ease: "easeOut" }}
@@ -446,46 +456,54 @@ function MatchListContent() {
                         </div>
 
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                          <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
                             <MapPin className="h-3.5 w-3.5" />
                             地区标签
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {item.locationTags.length > 0 ? (
                               item.locationTags.map((tag) => (
-                                <Badge key={`${item.matchId}-location-${tag}`} variant="secondary">
+                                <Badge
+                                  key={`${item.matchId}-location-${tag}`}
+                                  variant="secondary"
+                                  className="border border-white/5 bg-zinc-800 text-zinc-300"
+                                >
                                   {tag}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-xs text-muted-foreground">暂无地区标签</span>
+                              <span className="text-xs text-zinc-500">暂无地区标签</span>
                             )}
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+                          <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             技能标签
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {item.skillTags.length > 0 ? (
                               item.skillTags.map((tag) => (
-                                <Badge key={`${item.matchId}-skill-${tag}`} variant="secondary">
+                                <Badge
+                                  key={`${item.matchId}-skill-${tag}`}
+                                  variant="secondary"
+                                  className="border border-white/5 bg-zinc-800 text-zinc-300"
+                                >
                                   {tag}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-xs text-muted-foreground">暂无技能标签</span>
+                              <span className="text-xs text-zinc-500">暂无技能标签</span>
                             )}
                           </div>
                         </div>
 
-                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                        <div className="rounded-lg border border-white/10 bg-zinc-800/60 p-3 text-xs text-zinc-400">
                           <div className="flex items-start gap-2">
-                            <Link2 className="mt-0.5 h-4 w-4 text-slate-500" />
+                            <Link2 className="mt-0.5 h-4 w-4 text-zinc-500" />
                             <div className="space-y-1">
-                              <p className="font-medium text-slate-700">联系方式（合规保护）</p>
+                              <p className="font-medium text-zinc-300">联系方式（合规保护）</p>
                               <p>{isPending ? "确认后可见" : item.maskedContact}</p>
                             </div>
                           </div>
@@ -498,7 +516,7 @@ function MatchListContent() {
                             type="button"
                             onClick={() => setConfirmTarget(item)}
                             disabled={isSubmitting}
-                            className="min-w-[136px]"
+                            className="min-w-[136px] bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
                           >
                             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                             确认匹配
@@ -522,10 +540,10 @@ function MatchListContent() {
           }
         }}
       >
-        <AlertDialogContent className="bg-white/95 backdrop-blur-sm">
+        <AlertDialogContent className="border-white/10 bg-zinc-900/90 backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>确认匹配并进入后续流程？</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-zinc-50">确认匹配并进入后续流程？</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
               确认后将向对方展示您的联系方式并进入后续流程，是否继续？
             </AlertDialogDescription>
           </AlertDialogHeader>
