@@ -8,15 +8,17 @@ datasource db {
 }
 
 model User {
-  userId       BigInt      @id @default(autoincrement()) @map("user_id")
-  phoneHash    String      @map("phone_hash") @db.VarChar(64)
+  userId       BigInt       @id @default(autoincrement()) @map("user_id")
+  phoneHash    String       @map("phone_hash") @db.VarChar(64)
   role         UserRole
-  city         String?     @db.VarChar(50)
-  district     String?     @db.VarChar(100)
-  memberLevel  MemberLevel @default(free) @map("member_level")
-  memberExpire DateTime?   @map("member_expire")
-  status       UserStatus  @default(active)
-  createdAt    DateTime    @default(now()) @map("created_at")
+  city         String?      @db.VarChar(50)
+  district     String?      @db.VarChar(100)
+  memberLevel  MemberLevel  @default(free) @map("member_level")
+  memberExpire DateTime?    @map("member_expire")
+  status       UserStatus   @default(active)
+  captainLevel CaptainLevel @default(normal) @map("captain_level")
+  maskedPhone  String?      @map("masked_phone") @db.VarChar(20)
+  createdAt    DateTime     @default(now()) @map("created_at")
   contents     Content[]
   resources    Resource[]
 
@@ -98,6 +100,15 @@ model Content {
   @@map("contents")
 }
 
+model Announcement {
+  noticeId  BigInt   @id @default(autoincrement()) @map("notice_id")
+  content   String   @db.Text
+  publisher String   @default("admin") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("announcements")
+}
+
 enum UserRole {
   service
   resource
@@ -158,4 +169,10 @@ enum ContentStatus {
   pending
   published
   rejected
+}
+
+enum CaptainLevel {
+  normal
+  advanced
+  gold
 }

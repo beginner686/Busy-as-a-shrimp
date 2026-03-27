@@ -1,11 +1,9 @@
 .page {
-  min-height: 100vh;
-  padding: 28px;
-  color: #f6f7ff;
-  background:
-    radial-gradient(1300px 700px at -10% -30%, rgba(96, 70, 255, 0.45), transparent 65%),
-    radial-gradient(900px 520px at 110% 0%, rgba(0, 187, 255, 0.28), transparent 60%),
-    linear-gradient(180deg, #0f1231 0%, #0a0d20 100%);
+  flex: 1;
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .headerRow {
