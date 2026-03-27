@@ -21,4 +21,9 @@ export class MatchController {
   confirm(@Param("id") id: string) {
     return ok(this.matchService.confirm(Number(id)), "匹配已确认");
   }
+
+  @Post(":id/reject")
+  reject(@Param("id") id: string) {
+    return ok(this.matchService.reject(Number(id)), "匹配已拒绝");
+  }
 }

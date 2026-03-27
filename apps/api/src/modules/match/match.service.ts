@@ -29,4 +29,11 @@ export class MatchService {
       status: "confirmed"
     };
   }
+
+  reject(id: number) {
+    return {
+      matchId: id,
+      status: "rejected"
+    };
+  }
 }

@@ -6,7 +6,7 @@ export interface MatchItem {
   needId: number;
   resourceId: number;
   score: number;
-  status: "pushed" | "confirmed" | "queued";
+  status: "pushed" | "confirmed" | "queued" | "rejected";
 }
 
 export function createMatchApi(client: Pick<HttpClientLike, "get" | "post">) {
@@ -19,6 +19,9 @@ export function createMatchApi(client: Pick<HttpClientLike, "get" | "post">) {
     },
     confirm(id: number): Promise<{ matchId: number; status: string }> {
       return client.post<{ matchId: number; status: string }>(`/match/${id}/confirm`);
+    },
+    reject(id: number): Promise<{ matchId: number; status: string }> {
+      return client.post<{ matchId: number; status: string }>(`/match/${id}/reject`);
     }
   };
 }

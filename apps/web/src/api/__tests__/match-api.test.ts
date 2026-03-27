@@ -15,7 +15,7 @@ describe("createMatchApi", () => {
     expect(list[0]?.matchId).toBe(30001);
   });
 
-  it("calls run and confirm endpoints", async () => {
+  it("calls run, confirm and reject endpoints", async () => {
     const client = {
       get: vi.fn(),
       post: vi.fn().mockResolvedValue({ status: "queued" })
@@ -24,8 +24,10 @@ describe("createMatchApi", () => {
 
     await api.run({ needId: 90001 });
     await api.confirm(30001);
+    await api.reject(30001);
 
     expect(client.post).toHaveBeenNthCalledWith(1, "/match/run", { needId: 90001 });
     expect(client.post).toHaveBeenNthCalledWith(2, "/match/30001/confirm");
+    expect(client.post).toHaveBeenNthCalledWith(3, "/match/30001/reject");
   });
 });
