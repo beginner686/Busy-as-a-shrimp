@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { useUserStore } from "@/stores/user-store";
+import { useAuthStatus } from "@/stores/use-auth-status";
 import { getErrorMessage } from "@/utils/error-message";
 
 const COMMON_SKILL_TAGS = skillOptions.slice(0, 5).map((item) => item.value);
@@ -34,7 +34,7 @@ const COMMON_REGION_TAGS = regionOptions.slice(0, 4).map((item) => item.value);
 const COMMON_CUSTOM_TAGS = commonCustomTagOptions.map((item) => item.value);
 
 export default function ResourceNewPage() {
-  const token = useUserStore((state) => state.getValidToken());
+  const { hydrated, isLoggedIn } = useAuthStatus();
   const [submitting, setSubmitting] = useState(false);
   const [complianceWarning, setComplianceWarning] = useState("");
 
@@ -42,15 +42,33 @@ export default function ResourceNewPage() {
     defaultValues: resourceFormDefaultValues
   });
 
-  if (!token) {
+  if (!hydrated) {
     return (
-      <Card className="rounded-3xl border-white/70 bg-white/70 shadow-xl backdrop-blur-xl">
+      <Card className="rounded-3xl bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-100 backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="text-2xl">新建资源</CardTitle>
-          <CardDescription>请先登录后再上传资源。</CardDescription>
+          <CardTitle className="text-2xl font-semibold tracking-tight text-zinc-900">
+            新建资源
+          </CardTitle>
+          <CardDescription className="text-zinc-500">正在初始化登录状态...</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <Card className="rounded-3xl bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-100 backdrop-blur-xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold tracking-tight text-zinc-900">
+            新建资源
+          </CardTitle>
+          <CardDescription className="text-zinc-500">请先登录后再上传资源。</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild>
+          <Button
+            asChild
+            className="rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-sm ring-1 ring-inset ring-white/10 transition-all duration-200 hover:-translate-y-[1px]"
+          >
             <Link href="/auth">去登录</Link>
           </Button>
         </CardContent>
@@ -139,89 +157,101 @@ export default function ResourceNewPage() {
   return (
     <section className="space-y-4">
       <ComplianceCheckWrapper warningMessage={complianceWarning}>
-        <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-            <ResourceBasicInfoForm form={form} />
+        <div className="overflow-hidden rounded-3xl bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-100 backdrop-blur-xl sm:p-10">
+          <div className="mb-7 h-1 w-full rounded-full bg-gradient-to-r from-zinc-300 via-zinc-800 to-zinc-300" />
 
-            <Card className="border-border/70 bg-white/70 shadow-sm backdrop-blur">
-              <CardHeader>
-                <CardTitle>标签选择</CardTitle>
-                <CardDescription>支持搜索添加、常用标签和自定义标签。</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <FormField
-                  control={form.control}
-                  name="selectedSkills"
-                  render={({ field }) => (
-                    <FormItem>
-                      <TagSelectorField
-                        label="技能标签"
-                        description="用于匹配算法推荐，至少选择一个。"
-                        placeholder="搜索技能标签"
-                        options={skillOptions}
-                        commonValues={COMMON_SKILL_TAGS}
-                        value={field.value ?? []}
-                        onChange={field.onChange}
-                        allowCustom
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <Form {...form}>
+            <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+              <ResourceBasicInfoForm form={form} />
 
-                <FormField
-                  control={form.control}
-                  name="selectedRegions"
-                  render={({ field }) => (
-                    <FormItem>
-                      <TagSelectorField
-                        label="地区标签"
-                        description="第一项将作为 areaCode 上传。"
-                        placeholder="搜索城市或区域"
-                        options={regionOptions}
-                        commonValues={COMMON_REGION_TAGS}
-                        value={field.value ?? []}
-                        onChange={field.onChange}
-                        allowCustom={false}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card className="rounded-2xl bg-white/65 p-6 shadow-none ring-1 ring-zinc-100">
+                <CardHeader className="px-0 pb-4 pt-0">
+                  <CardTitle className="text-lg font-semibold tracking-tight text-zinc-900">
+                    标签选择
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">
+                    支持搜索添加、常用标签和自定义标签。
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5 px-0 pb-0">
+                  <FormField
+                    control={form.control}
+                    name="selectedSkills"
+                    render={({ field }) => (
+                      <FormItem>
+                        <TagSelectorField
+                          label="技能标签"
+                          description="用于匹配算法推荐，至少选择一个。"
+                          placeholder="搜索技能标签"
+                          options={skillOptions}
+                          commonValues={COMMON_SKILL_TAGS}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          allowCustom
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="customTags"
-                  render={({ field }) => (
-                    <FormItem>
-                      <TagSelectorField
-                        label="自定义标签"
-                        description="可补充场景、赛道、合作偏好等关键词。"
-                        placeholder="输入后点击添加"
-                        options={commonCustomTagOptions}
-                        commonValues={COMMON_CUSTOM_TAGS}
-                        value={field.value ?? []}
-                        onChange={field.onChange}
-                        allowCustom
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+                  <FormField
+                    control={form.control}
+                    name="selectedRegions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <TagSelectorField
+                          label="地区标签"
+                          description="第一项将作为 areaCode 上传。"
+                          placeholder="搜索城市或区域"
+                          options={regionOptions}
+                          commonValues={COMMON_REGION_TAGS}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          allowCustom={false}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-muted-foreground">
-                提交后将进入审核流程，审核通过后进入匹配池。
-              </p>
-              <Button type="submit" disabled={submitting} className="min-w-36">
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {submitting ? "提交中..." : "提交资源"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+                  <FormField
+                    control={form.control}
+                    name="customTags"
+                    render={({ field }) => (
+                      <FormItem>
+                        <TagSelectorField
+                          label="自定义标签"
+                          description="可补充场景、赛道、合作偏好等关键词。"
+                          placeholder="输入后点击添加"
+                          options={commonCustomTagOptions}
+                          commonValues={COMMON_CUSTOM_TAGS}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          allowCustom
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-zinc-100 bg-zinc-50/50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-zinc-500">
+                  提交后将进入审核流程，审核通过后进入匹配池。
+                </p>
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="min-w-36 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 px-8 py-2.5 text-white shadow-sm ring-1 ring-inset ring-white/10 transition-all duration-200 hover:-translate-y-[1px]"
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {submitting ? "提交中..." : "提交资源"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       </ComplianceCheckWrapper>
     </section>
   );

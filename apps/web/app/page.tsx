@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { getMatchApi } from "@/api";
 import type { MatchItem } from "@/api/match-api";
@@ -19,8 +20,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  MATCH_LIST_QUERY_KEY,
+  fetchMatchListQueryData
+} from "@/features/match-list/match-list-feature";
 import { toast } from "@/hooks/use-toast";
-import { useUserStore } from "@/stores/user-store";
+import { useAuthStatus } from "@/stores/use-auth-status";
 import { loadClientEnv } from "@/config/env";
 import { getErrorMessage } from "@/utils/error-message";
 
@@ -35,8 +40,8 @@ function isPendingMatch(status: MatchItem["status"]): boolean {
 
 export default function HomePage() {
   const router = useRouter();
-  const token = useUserStore((state) => state.getValidToken());
-  const phone = useUserStore((state) => state.phone);
+  const queryClient = useQueryClient();
+  const { hydrated, isLoggedIn, phone } = useAuthStatus();
   const [runningMatch, setRunningMatch] = useState(false);
   const [needId, setNeedId] = useState("90001");
   const [pendingCount, setPendingCount] = useState(0);
@@ -45,14 +50,17 @@ export default function HomePage() {
   const env = loadClientEnv();
 
   const loginStatusLabel = useMemo(() => {
-    if (!token) {
+    if (!hydrated) {
+      return "加载中";
+    }
+    if (!isLoggedIn) {
       return "未登录";
     }
     return phone ? `已登录 (${phone})` : "已登录";
-  }, [phone, token]);
+  }, [hydrated, isLoggedIn, phone]);
 
   async function loadPendingCount() {
-    if (!token) {
+    if (!isLoggedIn) {
       setPendingCount(0);
       return;
     }
@@ -70,7 +78,19 @@ export default function HomePage() {
 
   useEffect(() => {
     void loadPendingCount();
-  }, [token]);
+  }, [isLoggedIn]);
+
+  function prefetchMatchListOnIntent() {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    void queryClient.prefetchQuery({
+      queryKey: MATCH_LIST_QUERY_KEY,
+      queryFn: fetchMatchListQueryData,
+      staleTime: 45_000
+    });
+  }
 
   async function onRunMatch() {
     const trimmedNeedId = needId.trim();
@@ -83,7 +103,7 @@ export default function HomePage() {
       return;
     }
 
-    if (!token) {
+    if (!isLoggedIn) {
       router.push(`/auth?redirect=${encodeURIComponent(`/match/list?needId=${trimmedNeedId}`)}`);
       return;
     }
@@ -162,7 +182,11 @@ export default function HomePage() {
               <Link href="/resource/new">新建资源</Link>
             </Button>
             <Button asChild variant="outline" className="w-full justify-between">
-              <Link href="/match/list">
+              <Link
+                href="/match/list"
+                onMouseEnter={prefetchMatchListOnIntent}
+                onFocus={prefetchMatchListOnIntent}
+              >
                 <span>查看匹配</span>
                 <Badge variant={pendingCount > 0 ? "secondary" : "outline"}>
                   pending {loadingPendingCount ? "..." : pendingCount}

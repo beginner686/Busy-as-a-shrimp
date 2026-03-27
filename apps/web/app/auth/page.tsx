@@ -11,14 +11,6 @@ import { getUserApi } from "@/api";
 import { CaptchaInput, type CaptchaInputRef } from "@/components/auth/captcha-input";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
-import {
   Form,
   FormControl,
   FormField,
@@ -203,14 +195,19 @@ export default function AuthPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-md">
-      <Card className="border-white/70 bg-white/75 shadow-xl backdrop-blur-xl">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">免密登录 / 注册</CardTitle>
-          <CardDescription>手机号验证码登录</CardDescription>
-        </CardHeader>
+    <section className="relative isolate -mx-4 flex min-h-[calc(100vh-6rem)] items-center justify-center overflow-hidden bg-zinc-50 px-4 py-12 sm:px-6">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-[12%] h-[34rem] w-[34rem] -translate-x-[72%] rounded-full bg-blue-100/50 blur-[100px]" />
+        <div className="absolute left-1/2 top-[18%] h-[32rem] w-[32rem] translate-x-[20%] rounded-full bg-purple-100/50 blur-[100px]" />
+      </div>
 
-        <CardContent>
+      <div className="relative z-10 w-full max-w-[34rem] rounded-[2rem] bg-white/80 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-100 backdrop-blur-xl sm:p-10">
+        <header className="space-y-2 pb-7">
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">免密登录 / 注册</h1>
+          <p className="text-sm leading-6 text-zinc-500">手机号验证码登录</p>
+        </header>
+
+        <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -235,7 +232,7 @@ export default function AuthPage() {
                           autoComplete="tel-national"
                           maxLength={11}
                           placeholder="请输入手机号"
-                          className="pl-9"
+                          className="h-11 rounded-xl border border-transparent bg-zinc-50/50 pl-9 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
                           onChange={(event) => {
                             const next = event.target.value.replace(/\D/g, "").slice(0, 11);
                             field.onChange(next);
@@ -268,6 +265,7 @@ export default function AuthPage() {
                         onBlur={field.onBlur}
                         placeholder="输入4位图形验证码"
                         maxLength={4}
+                        className="h-11 rounded-xl border border-transparent bg-zinc-50/50 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
                         onCaptchaIdChange={handleCaptchaIdChange}
                       />
                     </FormControl>
@@ -303,7 +301,7 @@ export default function AuthPage() {
                             autoComplete="one-time-code"
                             maxLength={6}
                             placeholder="请输入短信验证码"
-                            className="pl-9"
+                            className="h-11 rounded-xl border border-transparent bg-zinc-50/50 pl-9 text-zinc-900 placeholder:text-zinc-400 transition-all duration-200 hover:bg-zinc-100/70 focus-visible:border-zinc-300 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-zinc-100"
                             onChange={(event) => {
                               const next = event.target.value.replace(/\D/g, "").slice(0, 6);
                               field.onChange(next);
@@ -313,7 +311,7 @@ export default function AuthPage() {
                         <Button
                           type="button"
                           variant="secondary"
-                          className="shrink-0"
+                          className="h-11 min-w-[132px] shrink-0 rounded-xl border border-zinc-200 bg-white/80 px-3 text-zinc-700 shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.4)] transition-all duration-200 hover:-translate-y-[1px] hover:bg-zinc-100/80 hover:text-zinc-900 hover:shadow-[0_8px_20px_rgba(24,24,27,0.08)] disabled:translate-y-0 disabled:opacity-60"
                           disabled={sendingSms || smsCooldown > 0}
                           onClick={() => void onSendSms()}
                         >
@@ -335,22 +333,30 @@ export default function AuthPage() {
                 )}
               />
 
-              <p className="text-xs text-muted-foreground">未注册的手机号验证后将自动创建账号</p>
+              <p className="pt-1 text-xs text-zinc-500">未注册的手机号验证后将自动创建账号</p>
 
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button
+                type="submit"
+                className="h-12 w-full rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-950 text-white shadow-[0_12px_28px_rgba(24,24,27,0.22),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_18px_32px_rgba(24,24,27,0.28),inset_0px_1px_0px_0px_rgba(255,255,255,0.1)] active:translate-y-0 disabled:translate-y-0 disabled:opacity-70"
+                disabled={submitting}
+              >
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {submitting ? "登录中..." : "登录 / 注册"}
               </Button>
             </form>
           </Form>
-        </CardContent>
+        </div>
 
-        <CardFooter>
-          <Button asChild variant="ghost" className="px-0 text-sm text-muted-foreground">
+        <footer className="pt-5">
+          <Button
+            asChild
+            variant="ghost"
+            className="h-9 px-1 text-sm text-zinc-500 transition-colors hover:bg-transparent hover:text-zinc-800"
+          >
             <Link href="/">返回首页</Link>
           </Button>
-        </CardFooter>
-      </Card>
+        </footer>
+      </div>
     </section>
   );
 }
