@@ -6,6 +6,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
+  ArrowUpRight,
   CheckCircle2,
   Link2,
   Loader2,
@@ -131,18 +132,18 @@ function getStatusMeta(status: MatchStatus): { label: string; className: string 
   if (status === "confirmed") {
     return {
       label: "已确认",
-      className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+      className: "border-emerald-500/10 bg-emerald-500/5 text-emerald-400/90"
     };
   }
   if (status === "invalid") {
     return {
       label: "已失效",
-      className: "border-white/5 bg-zinc-800 text-zinc-400"
+      className: "border-white/5 bg-white/[0.02] text-zinc-500"
     };
   }
   return {
     label: "待确认",
-    className: "border-amber-500/20 bg-amber-500/10 text-amber-400"
+    className: "border-amber-500/10 bg-amber-500/5 text-amber-400/90"
   };
 }
 
@@ -155,10 +156,10 @@ function parseStatusFilter(value: string | null): MatchStatusFilter {
 
 function LoginRequiredCard({ hydrated }: { hydrated: boolean }) {
   return (
-    <Card className="rounded-3xl border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+    <Card className="rounded-3xl border-white/[0.05] bg-white/[0.02] shadow-[0_8px_32px_rgba(0,0,0,0.8)] backdrop-blur-2xl ring-1 ring-white/[0.02]">
       <CardHeader>
-        <CardTitle className="text-2xl text-zinc-50">匹配列表</CardTitle>
-        <CardDescription className="text-zinc-400">
+        <CardTitle className="text-2xl font-bold tracking-tight text-zinc-50">匹配列表</CardTitle>
+        <CardDescription className="text-zinc-400/80">
           {hydrated ? "请先登录后查看匹配结果。" : "正在初始化页面..."}
         </CardDescription>
       </CardHeader>
@@ -166,7 +167,7 @@ function LoginRequiredCard({ hydrated }: { hydrated: boolean }) {
         <CardFooter>
           <Button
             asChild
-            className="bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+            className="rounded-xl bg-cyan-500 font-semibold tracking-wide text-black shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all hover:-translate-y-0.5 hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]"
           >
             <Link href="/auth">去登录</Link>
           </Button>
@@ -313,12 +314,14 @@ function MatchListContent() {
 
   return (
     <section className="space-y-4">
-      <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-        <CardHeader className="space-y-3">
+      <Card className="relative overflow-hidden border-white/[0.05] bg-white/[0.02] shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl ring-1 ring-white/[0.02] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-cyan-300 before:to-transparent before:opacity-20">
+        <CardHeader className="space-y-4 p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
-              <CardTitle className="text-xl text-zinc-50">匹配列表</CardTitle>
-              <CardDescription className="text-zinc-400">
+              <CardTitle className="text-2xl font-bold tracking-tighter text-zinc-50">
+                匹配列表
+              </CardTitle>
+              <CardDescription className="text-sm tracking-tight text-zinc-400/80">
                 高契合度优先展示，确认后才开放联系方式。
               </CardDescription>
             </div>
@@ -346,14 +349,20 @@ function MatchListContent() {
                 className="pl-9"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {(["all", "pending", "confirmed", "invalid"] as const).map((status) => (
                 <Button
                   key={status}
                   type="button"
                   size="sm"
-                  variant={statusFilter === status ? "default" : "outline"}
+                  variant={statusFilter === status ? "default" : "ghost"}
                   onClick={() => syncUrlState({ status })}
+                  className={cn(
+                    "rounded-lg px-3 transition-all",
+                    statusFilter === status
+                      ? "bg-white/10 text-white shadow-none hover:bg-white/20"
+                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                  )}
                 >
                   {status === "all"
                     ? "全部"
@@ -385,14 +394,18 @@ function MatchListContent() {
       ) : null}
 
       {!error && filtered.length === 0 ? (
-        <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-            <Sparkles className="h-8 w-8 text-cyan-500/50" />
-            <h3 className="text-base font-semibold text-zinc-50">暂无匹配结果</h3>
-            <p className="text-sm text-zinc-400">先发布资源，系统会自动尝试为你匹配。</p>
+        <Card className="border-white/[0.05] bg-white/[0.02] shadow-[0_8px_32px_rgba(0,0,0,0.8)] backdrop-blur-2xl ring-1 ring-white/[0.02]">
+          <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
+            <div className="rounded-full bg-cyan-500/10 p-4 ring-1 ring-cyan-500/20">
+              <Sparkles className="h-8 w-8 text-cyan-400/60" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-zinc-50">暂无匹配结果</h3>
+              <p className="text-sm text-zinc-400/80">先发布资源，系统会自动尝试为你匹配。</p>
+            </div>
             <Button
               asChild
-              className="bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+              className="mt-2 rounded-xl bg-cyan-500 font-semibold tracking-wide text-black shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all hover:-translate-y-0.5 hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]"
             >
               <Link href="/resource/new">去发布资源</Link>
             </Button>
@@ -422,104 +435,122 @@ function MatchListContent() {
                     whileHover={{ y: -2, scale: 1.003 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                   >
-                    <Card className="border-white/10 bg-zinc-900/40 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-                      <CardHeader className="space-y-2 pb-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <CardTitle className="text-base text-zinc-50">
-                            匹配任务 #{item.matchId}
+                    <Card className="relative overflow-hidden rounded-[2rem] border-white/[0.05] bg-white/[0.02] shadow-[0_16px_48px_rgba(0,0,0,0.8)] backdrop-blur-2xl ring-1 ring-white/[0.02] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-cyan-300 before:to-transparent before:opacity-30">
+                      <CardHeader className="space-y-4 p-6 pb-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <CardTitle className="text-lg font-extrabold tracking-tighter text-zinc-50">
+                            匹配任务 <span className="text-cyan-400/90">#{item.matchId}</span>
                           </CardTitle>
-                          <Badge variant="outline" className={statusMeta.className}>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "rounded-full border-none px-3 py-0.5 text-[11px] font-bold uppercase tracking-widest",
+                              statusMeta.className
+                            )}
+                          >
                             {statusMeta.label}
                           </Badge>
                         </div>
-                        <CardDescription className="text-zinc-400">
-                          需求 {item.needId} 对应资源 {item.resourceId}
+                        <CardDescription className="flex items-center gap-2 text-xs tracking-tight text-zinc-400/60">
+                          <div className="h-1 w-1 rounded-full bg-zinc-600" />
+                          需求 {item.needId} · 资源 {item.resourceId}
                         </CardDescription>
                       </CardHeader>
 
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-zinc-400">契合度</span>
-                            <span className="font-semibold text-zinc-50">
-                              {item.score.toFixed(1)} 分
+                      <CardContent className="space-y-6 p-6 pt-0">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+                            <span>契合深度</span>
+                            <span className="font-mono text-cyan-400">
+                              {item.score.toFixed(1)} %
                             </span>
                           </div>
-                          <div className="h-2 w-full rounded-full bg-zinc-800">
+                          <div className="h-2.5 w-full rounded-full bg-black/60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]">
                             <motion.div
-                              className="h-2 rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
+                              className="h-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                               initial={{ width: 0 }}
                               animate={{ width: `${scoreWidth}%` }}
-                              transition={{ duration: 0.35, ease: "easeOut" }}
+                              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                             />
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-                            <MapPin className="h-3.5 w-3.5" />
-                            地区标签
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                              <MapPin className="h-3 w-3 text-cyan-500/50" />
+                              地区标签
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.locationTags.length > 0 ? (
+                                item.locationTags.map((tag) => (
+                                  <Badge
+                                    key={`${item.matchId}-location-${tag}`}
+                                    variant="secondary"
+                                    className="rounded-lg border border-white/[0.05] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition-all hover:bg-white/[0.08] hover:text-white"
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-[10px] text-zinc-600 italic">暂无记录</span>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {item.locationTags.length > 0 ? (
-                              item.locationTags.map((tag) => (
-                                <Badge
-                                  key={`${item.matchId}-location-${tag}`}
-                                  variant="secondary"
-                                  className="border border-white/5 bg-zinc-800 text-zinc-300"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-xs text-zinc-500">暂无地区标签</span>
-                            )}
+
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                              <CheckCircle2 className="h-3 w-3 text-cyan-500/50" />
+                              核心技能
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.skillTags.length > 0 ? (
+                                item.skillTags.map((tag) => (
+                                  <Badge
+                                    key={`${item.matchId}-skill-${tag}`}
+                                    variant="secondary"
+                                    className="rounded-lg border border-white/[0.05] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition-all hover:bg-white/[0.08] hover:text-white"
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-[10px] text-zinc-600 italic">暂无记录</span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            技能标签
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {item.skillTags.length > 0 ? (
-                              item.skillTags.map((tag) => (
-                                <Badge
-                                  key={`${item.matchId}-skill-${tag}`}
-                                  variant="secondary"
-                                  className="border border-white/5 bg-zinc-800 text-zinc-300"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-xs text-zinc-500">暂无技能标签</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="rounded-lg border border-white/10 bg-zinc-800/60 p-3 text-xs text-zinc-400">
-                          <div className="flex items-start gap-2">
-                            <Link2 className="mt-0.5 h-4 w-4 text-zinc-500" />
+                        <div className="rounded-2xl border border-white/[0.03] bg-black/40 p-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+                          <div className="flex items-start gap-4">
+                            <div className="rounded-full bg-white/[0.03] p-2.5 ring-1 ring-white/[0.05]">
+                              <Link2 className="h-4 w-4 text-zinc-500" />
+                            </div>
                             <div className="space-y-1">
-                              <p className="font-medium text-zinc-300">联系方式（合规保护）</p>
-                              <p>{isPending ? "确认后可见" : item.maskedContact}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                                CONTACT ENCRYPTION
+                              </p>
+                              <p className="font-mono text-sm font-medium tracking-tight text-zinc-200">
+                                {isPending ? "PROTECTED (CONFIRM TO VIEW)" : item.maskedContact}
+                              </p>
                             </div>
                           </div>
                         </div>
                       </CardContent>
 
-                      <CardFooter className="pt-0">
+                      <CardFooter className="p-6 pt-0">
                         {isPending ? (
                           <Button
                             type="button"
                             onClick={() => setConfirmTarget(item)}
                             disabled={isSubmitting}
-                            className="min-w-[136px] bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+                            className="group w-full rounded-xl bg-cyan-500 font-bold tracking-widest text-black shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all hover:-translate-y-1 hover:bg-cyan-400 hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] sm:w-auto"
                           >
-                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                            确认匹配
+                            {isSubmitting ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
+                            确认并建立连接
+                            <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                           </Button>
                         ) : null}
                       </CardFooter>
@@ -540,18 +571,24 @@ function MatchListContent() {
           }
         }}
       >
-        <AlertDialogContent className="border-white/10 bg-zinc-900/90 backdrop-blur-xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-zinc-50">确认匹配并进入后续流程？</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
-              确认后将向对方展示您的联系方式并进入后续流程，是否继续？
-            </AlertDialogDescription>
+        <AlertDialogContent className="max-w-sm border-white/[0.05] bg-zinc-950/80 p-8 backdrop-blur-2xl ring-1 ring-white/[0.05]">
+          <AlertDialogHeader className="space-y-4 text-center">
+            <div className="mx-auto rounded-full bg-cyan-500/10 p-3 text-cyan-400 ring-1 ring-cyan-500/20">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-xl font-bold tracking-tight text-zinc-50">
+                确认开启流程？
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm leading-relaxed text-zinc-400/80">
+                确认后将向对方展示您的联系方式并建立业务对接，是否继续？
+              </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={confirmMutation.isPending}>取消</AlertDialogCancel>
+          <AlertDialogFooter className="mt-4 gap-2 sm:flex-col sm:space-x-0">
             <AlertDialogAction
               disabled={confirmMutation.isPending || !confirmTarget}
-              className="min-w-[92px]"
+              className="w-full rounded-xl bg-cyan-500 font-bold tracking-wide text-black shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:bg-cyan-400"
               onClick={(event) => {
                 event.preventDefault();
                 if (!confirmTarget) {
@@ -562,9 +599,15 @@ function MatchListContent() {
                 });
               }}
             >
-              {confirmMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              继续
+              {confirmMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              立即确认
             </AlertDialogAction>
+            <AlertDialogCancel
+              disabled={confirmMutation.isPending}
+              className="border-none bg-transparent font-medium text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
+            >
+              返回修改
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
