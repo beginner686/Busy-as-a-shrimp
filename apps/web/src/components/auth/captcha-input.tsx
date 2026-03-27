@@ -89,7 +89,7 @@ export const CaptchaInput = forwardRef<CaptchaInputRef, CaptchaInputProps>(
     }, [requestCaptcha]);
 
     return (
-      <div className="grid grid-cols-[1fr_120px] gap-2">
+      <div className="grid grid-cols-[1fr_132px] gap-3">
         <Input
           {...props}
           className={className}
@@ -106,7 +106,7 @@ export const CaptchaInput = forwardRef<CaptchaInputRef, CaptchaInputProps>(
           type="button"
           onClick={() => void requestCaptcha()}
           disabled={loading || disabled}
-          className="relative flex h-10 items-center justify-center overflow-hidden rounded-md border border-input bg-background text-xs text-muted-foreground disabled:cursor-not-allowed disabled:opacity-80"
+          className="relative flex h-11 items-center justify-center overflow-hidden rounded-xl border border-zinc-200/80 bg-zinc-50/60 text-xs text-zinc-500 transition-all duration-200 hover:bg-zinc-100/80 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-zinc-100 disabled:cursor-not-allowed disabled:opacity-80"
           aria-label="刷新图形验证码"
           title="点击刷新验证码"
         >
@@ -118,8 +118,8 @@ export const CaptchaInput = forwardRef<CaptchaInputRef, CaptchaInputProps>(
             <span>{requestError || "加载失败"}</span>
           )}
 
-          <span className="absolute right-1 top-1 rounded bg-background/80 p-0.5">
-            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+          <span className="absolute right-1.5 top-1.5 rounded-md bg-white/80 p-0.5 shadow-sm">
+            <RefreshCw className={`h-3 w-3 text-zinc-500 ${loading ? "animate-spin" : ""}`} />
           </span>
         </button>
       </div>

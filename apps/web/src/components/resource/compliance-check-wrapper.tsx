@@ -29,18 +29,20 @@ type ComplianceCheckWrapperProps = {
 export function ComplianceCheckWrapper({ warningMessage, children }: ComplianceCheckWrapperProps) {
   return (
     <div className="space-y-4">
-      <Card className="border-sky-200/80 bg-sky-50/70">
+      <Card className="rounded-2xl border border-zinc-100 bg-white/65 shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="h-4 w-4 text-sky-700" />
+          <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight text-zinc-900">
+            <ShieldCheck className="h-4 w-4 text-zinc-700" />
             合规校验
           </CardTitle>
-          <CardDescription>禁止上传手机号、微信、QQ、邮箱等私联信息。</CardDescription>
+          <CardDescription className="text-xs text-zinc-500">
+            禁止上传手机号、微信、QQ、邮箱等私联信息。
+          </CardDescription>
         </CardHeader>
         {warningMessage ? (
           <CardContent>
-            <div className="flex items-start gap-2 rounded-md border border-destructive/35 bg-destructive/10 p-3 text-sm text-destructive">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 shadow-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
               <p>{warningMessage}</p>
             </div>
           </CardContent>
