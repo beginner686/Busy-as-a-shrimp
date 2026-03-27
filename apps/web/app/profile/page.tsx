@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getUserApi } from "../../src/api";
 import { useUserStore, type UserRole } from "../../src/stores/user-store";
+import { useAuthStatus } from "../../src/stores/use-auth-status";
 import { getErrorMessage } from "../../src/utils/error-message";
 
 export default function ProfilePage() {
-  const token = useUserStore((state) => state.getValidToken());
+  const { hydrated, isLoggedIn, token } = useAuthStatus();
   const role = useUserStore((state) => state.role);
   const setRole = useUserStore((state) => state.setRole);
   const [loading, setLoading] = useState(false);
@@ -50,7 +51,16 @@ export default function ProfilePage() {
     };
   }, [setRole, token]);
 
-  if (!token) {
+  if (!hydrated) {
+    return (
+      <section className="rounded-3xl border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+        <h1 className="text-2xl font-semibold text-slate-900">个人资料</h1>
+        <p className="mt-2 text-sm text-slate-600">正在初始化登录状态...</p>
+      </section>
+    );
+  }
+
+  if (!isLoggedIn) {
     return (
       <section className="rounded-3xl border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur-xl">
         <h1 className="text-2xl font-semibold text-slate-900">个人资料</h1>

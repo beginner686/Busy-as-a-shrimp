@@ -13,6 +13,9 @@
   "dependencies": {
     "@airp/api-types": "workspace:*",
     "@airp/http-client": "workspace:*",
+    "@tanstack/react-query": "^5.95.2",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.7.0",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

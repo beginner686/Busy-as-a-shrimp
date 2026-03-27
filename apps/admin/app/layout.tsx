@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { AdminNav } from "./AdminNav";
 import { MswProvider } from "../src/components/msw-provider";
+import { QueryProvider } from "../src/components/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,10 +16,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-CN">
       <body>
         <MswProvider />
-        <div className="admin-shell">
-          <AdminNav />
-          {children}
-        </div>
+        <QueryProvider>
+          <div className="admin-shell">
+            <AdminNav />
+            {children}
+          </div>
+        </QueryProvider>
+
       </body>
     </html>
   );
