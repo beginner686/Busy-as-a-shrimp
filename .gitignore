@@ -16,3 +16,7 @@ test-results
 playwright-report
 blob-report
 
+
+git_log_local.txt
+git_log_remote.txt
+git_status.txt

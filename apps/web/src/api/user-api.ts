@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   CaptchaDto,
   LoginDto,
   RegisterDto,
@@ -41,28 +41,28 @@ export interface AdminLoginResult {
 export function createUserApi(client: Pick<HttpClientLike, "get" | "post" | "put">) {
   return {
     register(payload: RegisterDto): Promise<RegisterResult> {
-      return client.post<RegisterResult>("user/register", payload);
+      return client.post<RegisterResult>("/user/register", payload);
     },
     sendSms(payload: SendSmsDto): Promise<SendSmsResult> {
-      return client.post<SendSmsResult>("user/send-sms", payload);
+      return client.post<SendSmsResult>("/user/send-sms", payload);
     },
     login(payload: LoginDto): Promise<LoginResult> {
-      return client.post<LoginResult>("user/login", payload);
+      return client.post<LoginResult>("/user/login", payload);
     },
     fetchCaptcha(): Promise<CaptchaDto> {
-      return client.get<CaptchaDto>("user/captcha");
+      return client.get<CaptchaDto>("/user/captcha");
     },
     getInfo(): Promise<UserInfo> {
-      return client.get<UserInfo>("user/info");
+      return client.get<UserInfo>("/user/info");
     },
     updateInfo(payload: UpdateUserInfoDto): Promise<{ updated: boolean }> {
-      return client.put<{ updated: boolean }>("user/info", payload);
+      return client.put<{ updated: boolean }>("/user/info", payload);
     },
     updateRole(payload: UpdateRoleDto): Promise<{ updated: boolean; role: UpdateRoleDto["role"] }> {
-      return client.put<{ updated: boolean; role: UpdateRoleDto["role"] }>("user/role", payload);
+      return client.put<{ updated: boolean; role: UpdateRoleDto["role"] }>("/user/role", payload);
     },
     adminLogin(payload: AdminLoginDto): Promise<AdminLoginResult> {
-      return client.post<AdminLoginResult>("admin/login", payload);
+      return client.post<AdminLoginResult>("/admin/login", payload);
     }
   };
 }

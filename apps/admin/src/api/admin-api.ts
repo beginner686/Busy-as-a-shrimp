@@ -1,27 +1,52 @@
-import type { HttpClientLike } from "./http";
+﻿import type { HttpClientLike } from "./http";
 
 export interface AdminStats {
   totalUsers: number;
+  activeUsers: number;
   totalResources: number;
+  pendingResources: number;
+  activeCaptains: number;
   matchRate: number;
+  announcementCount: number;
 }
 
 export interface AdminUser {
   userId: number;
-  status: string;
+  phoneMasked: string;
+  role: "service" | "resource" | "both";
+  city: string;
+  memberLevel: "free" | "monthly" | "yearly" | "lifetime";
+  status: "active" | "frozen" | "banned";
+  createdAt: string;
+  captainLevel?: "normal" | "advanced" | "gold";
+}
+
+export interface AdminPriceRange {
+  min?: number;
+  max?: number;
 }
 
 export interface AdminResource {
   resourceId: number;
-  reviewStatus: string;
+  userId: number;
+  resourceType: "skill" | "location" | "account" | "time";
+  tags: string[];
+  areaCode?: string;
+  priceRange?: AdminPriceRange;
+  status: "pending" | "active" | "inactive" | "rejected";
+  createdAt: string;
+  verifiedAt?: string;
 }
 
 export type ReviewDecision = "approve" | "reject";
 
 export interface CaptainRank {
   captainId: number;
+  name: string;
   level: "normal" | "advanced" | "gold";
   score: number;
+  monthInvites: number;
+  commissionRate: number;
 }
 
 export function createAdminApi(client: Pick<HttpClientLike, "get" | "put">) {

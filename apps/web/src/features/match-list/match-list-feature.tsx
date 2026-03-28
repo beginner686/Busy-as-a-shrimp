@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -19,6 +19,7 @@ import Link from "next/link";
 
 import { getMatchApi } from "@/api";
 import type { MatchItem } from "@/api/match-api";
+import { MatchListSkeletonGrid } from "@/features/match-list/match-list-skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -235,15 +236,26 @@ function MatchListContent() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [confirmTarget, setConfirmTarget] = useState<MatchCardItem | null>(null);
-  const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  const searchParamsSnapshot = searchParams.toString();
+  const statusParam = searchParams.get("status");
+  const queryParam = searchParams.get("q") ?? "";
+  const [searchInput, setSearchInput] = useState(queryParam);
 
-  const statusFilter = parseStatusFilter(searchParams.get("status"));
-  const keyword = (searchParams.get("q") ?? "").trim().toLowerCase();
+  const statusFilter = parseStatusFilter(statusParam);
+  const keyword = queryParam.trim().toLowerCase();
 
-  const { data, isFetching, error, refetch } = useSuspenseQuery({
+  const {
+    data = [],
+    isFetching,
+    isPending,
+    isError,
+    error,
+    refetch
+  } = useQuery({
     queryKey: MATCH_LIST_QUERY_KEY,
     queryFn: fetchMatchListQueryData,
-    staleTime: 45_000
+    staleTime: 45_000,
+    retry: 1
   });
 
   const filtered = useMemo(() => {
@@ -272,7 +284,7 @@ function MatchListContent() {
 
   const syncUrlState = useCallback(
     (patch: { status?: MatchStatusFilter | null; q?: string | null }) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParamsSnapshot);
 
       if (patch.status !== undefined) {
         if (!patch.status || patch.status === "all") {
@@ -292,19 +304,18 @@ function MatchListContent() {
       }
 
       const next = params.toString();
-      const current = searchParams.toString();
-      if (next === current) {
+      if (next === searchParamsSnapshot) {
         return;
       }
 
       router.replace(next ? `?${next}` : "?", { scroll: false });
     },
-    [router, searchParams]
+    [router, searchParamsSnapshot]
   );
 
   useEffect(() => {
-    setSearchInput(searchParams.get("q") ?? "");
-  }, [searchParams]);
+    setSearchInput(queryParam);
+  }, [queryParam]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -431,7 +442,7 @@ function MatchListContent() {
         </CardHeader>
       </Card>
 
-      {error ? (
+      {isError ? (
         <Card className="border-destructive/40 bg-destructive/10">
           <CardContent className="flex items-start gap-2 p-4 text-sm text-destructive">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -446,7 +457,9 @@ function MatchListContent() {
         </Card>
       ) : null}
 
-      {!error && filtered.length === 0 ? (
+      {!isError && isPending ? <MatchListSkeletonGrid count={4} /> : null}
+
+      {!isError && !isPending && filtered.length === 0 ? (
         <Card className="border-white/[0.05] bg-white/[0.02] shadow-[0_8px_32px_rgba(0,0,0,0.8)] backdrop-blur-2xl ring-1 ring-white/[0.02]">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <div className="rounded-full bg-cyan-500/10 p-4 ring-1 ring-cyan-500/20">
@@ -466,7 +479,7 @@ function MatchListContent() {
         </Card>
       ) : null}
 
-      {!error && filtered.length > 0 ? (
+      {!isError && !isPending && filtered.length > 0 ? (
         <motion.ul className="grid gap-3">
           <AnimatePresence initial={false} mode="popLayout">
             {filtered.map((item) => {

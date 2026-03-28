@@ -1,4 +1,4 @@
-version: "3.9"
+﻿version: "3.9"
 
 services:
   api:
@@ -71,10 +71,8 @@ services:
     container_name: airp-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: airp
-      MYSQL_USER: airp
-      MYSQL_PASSWORD: airp
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: busy_as_a_shrimp
     ports:
       - "3306:3306"
     volumes:

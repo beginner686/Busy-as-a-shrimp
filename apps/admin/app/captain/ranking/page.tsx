@@ -1,16 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { getAdminApi } from "../../../src/api";
-import { EmptyState } from "../../../src/components/empty-state";
-import { getErrorMessage } from "../../../src/utils/error-message";
-import styles from "../../page.module.css";
 
-interface CaptainRank {
-  captainId: number;
-  level: string;
-  score: number;
-}
+import { getAdminApi } from "../../../src/api";
+import type { CaptainRank } from "../../../src/api/admin-api";
+import { EmptyState } from "../../../src/components/empty-state";
+import styles from "../../page.module.css";
 
 export default function CaptainRankingPage() {
   const [loading, setLoading] = useState(true);
@@ -19,26 +14,29 @@ export default function CaptainRankingPage() {
 
   useEffect(() => {
     let active = true;
+
     async function load() {
       setLoading(true);
       setError("");
+
       try {
         const result = await getAdminApi().captainRanking();
         if (active) {
           setRows(result);
         }
       } catch (loadError) {
-        if (!active) {
-          return;
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : "Failed to load ranking.");
         }
-        setError(getErrorMessage(loadError));
       } finally {
         if (active) {
           setLoading(false);
         }
       }
     }
+
     void load();
+
     return () => {
       active = false;
     };
@@ -47,48 +45,53 @@ export default function CaptainRankingPage() {
   return (
     <main className={styles.page}>
       <div className={styles.headerRow}>
-        <h1 className={styles.title}>团长领袖排行</h1>
+        <div>
+          <h1 className={styles.title}>Captain Ranking</h1>
+          <p className={styles.subtitle}>Track top captain performance and commission levels.</p>
+        </div>
       </div>
 
-      {loading ? <p className={styles.loading}>加载中...</p> : null}
+      {loading ? <p className={styles.loading}>Loading captain ranking...</p> : null}
       {error ? <p className={styles.error}>{error}</p> : null}
 
       {!loading && !error && rows.length === 0 ? (
-        <EmptyState title="暂无排行数据" text="当前没有可展示领袖排行。" />
+        <EmptyState title="No ranking data" text="Captain ranking data is not available yet." />
       ) : null}
 
       {!loading && !error && rows.length > 0 ? (
-        <div className={styles.panel}>
+        <section className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h2>王牌团长贡献榜</h2>
+            <h2>Top captains</h2>
           </div>
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>排名标识</th>
-                  <th>当前等级</th>
-                  <th>贡献积分</th>
-                  <th>趋势</th>
+                  <th>Captain</th>
+                  <th>Level</th>
+                  <th>Score</th>
+                  <th>Monthly invites</th>
+                  <th>Commission</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((item, index) => (
+                {rows.map((item) => (
                   <tr key={item.captainId}>
-                    <td>#{item.captainId} (Top {index + 1})</td>
                     <td>
-                      <span className={`${styles.badge} ${styles.active}`}>
-                        {item.level}
-                      </span>
+                      {item.name} (#{item.captainId})
                     </td>
-                    <td style={{ fontWeight: "bold", color: "#8de6ff" }}>{item.score}</td>
-                    <td style={{ color: "#55ffb5" }}>↑ 稳定上升</td>
+                    <td>
+                      <span className={`${styles.badge} ${styles.active}`}>{item.level}</span>
+                    </td>
+                    <td>{item.score}</td>
+                    <td>{item.monthInvites}</td>
+                    <td>{Math.round(item.commissionRate * 100)}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       ) : null}
     </main>
   );
