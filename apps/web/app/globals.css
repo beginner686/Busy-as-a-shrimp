@@ -3,17 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 移除原有的浅色变量，统一使用暗色基准 */
 :root {
-  --bg-start: #f0f6ff;
-  --bg-end: #d9e6ff;
-  --text-main: #12203a;
-  --text-sub: #41506f;
-  --accent: #155eef;
-  --accent-soft: #dce7ff;
-  --danger: #b42318;
-  --glass-bg: rgba(255, 255, 255, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.65);
-  --shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
+  --background: #030712;
+  --foreground: #f9fafb;
 }
 
 * {
@@ -25,12 +18,12 @@ body {
   padding: 0;
   margin: 0;
   min-height: 100%;
+  background-color: #030712;
 }
 
 body {
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-  color: var(--text-main);
-  background: radial-gradient(circle at top right, #ffffff 0%, #eef4ff 35%, #dbe8ff 100%);
+  font-family: "PingFang SC", "Microsoft YaHei", "Inter", sans-serif;
+  color: #f9fafb;
 }
 
 a {
@@ -38,9 +31,9 @@ a {
   text-decoration: none;
 }
 
+/* 优化现有的组件类名以适配暗色环境 */
 .app-shell {
   min-height: 100vh;
-  padding: 16px;
 }
 
 .top-nav {
@@ -59,307 +52,54 @@ a {
   padding: 8px 12px;
   border-radius: 999px;
   font-size: 14px;
-  color: var(--text-sub);
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-.nav-action {
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 .nav-link:hover {
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.95);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow);
-  border-radius: 18px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 24px;
 }
 
-.page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 22px;
-}
-
-.title {
-  margin: 0 0 8px;
-  font-size: 28px;
-  line-height: 1.2;
-}
-
-.subtitle {
-  margin: 0 0 22px;
-  color: var(--text-sub);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.label {
-  font-size: 13px;
-  color: var(--text-sub);
-}
-
-.input,
-.select {
-  width: 100%;
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(122, 139, 173, 0.3);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0 12px;
-  color: var(--text-main);
-}
-
-.textarea {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(122, 139, 173, 0.3);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px 12px;
-  color: var(--text-main);
-}
-
-.button-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  height: 40px;
-  border: 0;
-  border-radius: 10px;
-  padding: 0 14px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-primary {
-  background: linear-gradient(120deg, #2368f5, #3f8cff);
-  color: #fff;
-}
-
-.btn-secondary {
-  background: var(--accent-soft);
-  color: #18376d;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.state-card {
-  padding: 16px;
-}
-
-.state-title {
-  margin: 0 0 6px;
-  font-size: 15px;
-}
-
-.state-text {
-  margin: 0;
-  color: var(--text-sub);
-  font-size: 14px;
-}
-
-.state-text-danger {
-  color: var(--danger);
-}
-
-.list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.item {
-  padding: 14px;
-}
-
-.item-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: #214476;
-  background: rgba(21, 94, 239, 0.15);
-}
-
-.small {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-sub);
-}
-
-.auth-modal-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: rgba(6, 24, 56, 0.38);
-  display: grid;
-  place-items: center;
-  padding: 16px;
-}
-
-.auth-modal {
-  width: min(100%, 460px);
-  padding: 18px;
-}
-
-.auth-modal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.auth-modal-title {
-  font-size: 22px;
-  margin: 0;
-}
-
-.auth-modal-tabs {
-  display: inline-flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-}
-
-.auth-tab {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 0;
-  cursor: pointer;
-  background: transparent;
-  color: var(--text-sub);
-  font-weight: 600;
-}
-
-.auth-tab-active {
-  background: rgba(21, 94, 239, 0.12);
-  color: var(--text-main);
-}
-
-@media (min-width: 768px) {
-  .app-shell {
-    padding: 20px 28px;
-  }
-
-  .grid-2 {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
+/* 移除过时的浅色变量引用 */
 @layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
-  }
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --radius: 0.75rem;
   }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+}
+
+@layer utilities {
+  .tracking-tighter {
+    letter-spacing: -0.05em;
   }
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Activity,
@@ -41,7 +41,7 @@ function isPendingMatch(status: MatchItem["status"]): boolean {
 }
 
 const obsidianCardClass =
-  "relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-cyan-300 before:to-transparent before:opacity-30 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-white/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6),_inset_0_0_15px_rgba(6,182,212,0.08)]";
+  "relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.03] backdrop-blur-3xl shadow-[0_8px_48px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.02] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-cyan-300 before:to-transparent before:opacity-30 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-white/20 hover:shadow-[0_32px_64px_rgba(0,0,0,0.8),_inset_0_0_20px_rgba(6,182,212,0.12)]";
 
 export default function HomePage() {
   const router = useRouter();
@@ -52,7 +52,12 @@ export default function HomePage() {
   const [pendingCount, setPendingCount] = useState(0);
   const [loadingPendingCount, setLoadingPendingCount] = useState(false);
   const [dispatchResult, setDispatchResult] = useState<DispatchResult | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const env = loadClientEnv();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const loginStatusLabel = useMemo(() => {
     if (!hydrated) {
@@ -147,11 +152,11 @@ export default function HomePage() {
   }
 
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden rounded-3xl bg-[radial-gradient(circle_at_center,_#111827_0%,_#030712_100%)] p-6 text-zinc-50">
+    <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden rounded-[2.5rem] bg-[radial-gradient(circle_at_center,_#111827_0%,_#030712_100%)] p-6 text-zinc-50">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] opacity-[0.05]" />
-        <div className="absolute left-1/2 top-[-18%] h-[360px] w-[560px] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-[150px]" />
-        <div className="absolute -right-24 bottom-[-20%] h-[320px] w-[420px] rounded-full bg-violet-500/10 blur-[120px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:24px_24px] opacity-[0.03]" />
+        <div className="absolute left-1/2 top-[-15%] h-[450px] w-[700px] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-[150px]" />
+        <div className="absolute -right-32 bottom-[-15%] h-[400px] w-[600px] rounded-full bg-violet-500/10 blur-[120px]" />
       </div>
 
       <div className="relative z-10 space-y-6">
@@ -159,13 +164,15 @@ export default function HomePage() {
           <article className={`${obsidianCardClass} p-6`}>
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-2">
-                <p className="text-[10px] font-mono tracking-wider text-zinc-500">
-                  [ SYSTEM READY ]
+                <p className="text-[10px] font-mono font-bold tracking-[0.3em] text-zinc-600">
+                  SYSTEM READY
                 </p>
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-50">
+                <h1 className="text-3xl font-extrabold tracking-tighter text-zinc-50">
                   AI 资源调度中心
                 </h1>
-                <p className="text-sm text-zinc-400">状态校验、任务排产与匹配预取已就绪。</p>
+                <p className="text-sm tracking-tight text-zinc-400/80">
+                  状态校验、任务排产与匹配预取已就绪。
+                </p>
               </div>
               <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
                 <CircleDot className="h-3.5 w-3.5 animate-pulse" />
@@ -181,11 +188,13 @@ export default function HomePage() {
             </article>
 
             <article className={`${obsidianCardClass} p-5`}>
-              <p className="text-xs text-zinc-500">Pending 匹配</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                Pending 匹配
+              </p>
               {loadingPendingCount ? (
-                <Skeleton className="mt-3 h-7 w-14 rounded-md bg-zinc-800" />
+                <Skeleton className="mt-3 h-7 w-14 rounded-md bg-white/5" />
               ) : (
-                <p className="mt-2 font-mono text-2xl tracking-tight text-cyan-300">
+                <p className="mt-2 font-mono text-3xl font-bold tracking-tighter text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                   {pendingCount}
                 </p>
               )}
@@ -219,11 +228,13 @@ export default function HomePage() {
           >
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-mono tracking-wider text-zinc-500">
-                  [ AI MATCH ENGINE ]
+                <p className="text-[10px] font-mono font-bold tracking-[0.3em] text-zinc-600">
+                  AI MATCH ENGINE
                 </p>
-                <h2 className="mt-2 text-xl font-bold tracking-tight text-zinc-50">一键匹配</h2>
-                <p className="mt-2 text-sm text-zinc-400">
+                <h2 className="mt-2 text-2xl font-extrabold tracking-tighter text-zinc-50">
+                  一键匹配
+                </h2>
+                <p className="mt-2 text-sm tracking-tight text-zinc-400/80">
                   输入需求 ID，触发排产并自动跳转匹配结果页。
                 </p>
               </div>
@@ -234,14 +245,14 @@ export default function HomePage() {
 
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <label className="space-y-2">
-                <span className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                   need_id
                 </span>
                 <Input
                   value={needId}
                   onChange={(event) => setNeedId(event.target.value)}
-                  placeholder="输入需求 ID"
-                  className="h-11 rounded-xl border border-white/10 bg-zinc-900/70 px-4 text-zinc-100 placeholder:text-zinc-500 transition-all duration-200 hover:border-zinc-600 focus-visible:border-cyan-500/40 focus-visible:ring-4 focus-visible:ring-cyan-500/10"
+                  placeholder="请输入需求 ID"
+                  className="h-12 rounded-2xl border border-white/5 bg-black/40 px-5 font-mono text-zinc-100 placeholder:text-zinc-700 transition-all duration-300 hover:border-white/10 focus-visible:border-cyan-500/50 focus-visible:ring-4 focus-visible:ring-cyan-500/10 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]"
                 />
               </label>
               <Button
@@ -279,16 +290,18 @@ export default function HomePage() {
 
           <article className={`${obsidianCardClass} p-6`}>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold tracking-tight text-zinc-100">匹配列表</h2>
+              <h2 className="text-xl font-extrabold tracking-tighter text-zinc-100">匹配列表</h2>
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-2.5 text-cyan-300">
-                <Activity className="h-4 w-4" />
+                <Activity className="h-5 w-5" />
               </div>
             </div>
-            <p className="mb-4 text-xs text-zinc-500">悬停触发预取，打开即命中缓存。</p>
+            <p className="mb-4 text-[11px] font-medium tracking-tight text-zinc-500">
+              悬停触发预取，打开即命中缓存。
+            </p>
             <Button
               asChild
               variant="secondary"
-              className="h-10 w-full rounded-full border border-white/10 bg-zinc-900/70 text-zinc-100 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/30 hover:bg-zinc-800"
+              className="group h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] text-zinc-100 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]"
             >
               <Link
                 href="/match/list"
@@ -303,7 +316,7 @@ export default function HomePage() {
 
           <article className={`${obsidianCardClass} p-6`}>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold tracking-tight text-zinc-100">资源入口</h2>
+              <h2 className="text-xl font-extrabold tracking-tighter text-zinc-100">资源入口</h2>
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-2.5 text-cyan-300">
                 <Rocket className="h-4 w-4" />
               </div>
@@ -312,7 +325,7 @@ export default function HomePage() {
               <Button
                 asChild
                 variant="secondary"
-                className="h-10 w-full rounded-full border border-white/10 bg-zinc-900/70 text-zinc-100 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/30 hover:bg-zinc-800"
+                className="group h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] text-zinc-100 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]"
               >
                 <Link href="/resource/new">
                   发布资源
@@ -322,7 +335,7 @@ export default function HomePage() {
               <Button
                 asChild
                 variant="secondary"
-                className="h-10 w-full rounded-full border border-white/10 bg-zinc-900/70 text-zinc-100 transition-all duration-200 hover:-translate-y-[1px] hover:border-cyan-500/30 hover:bg-zinc-800"
+                className="group h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] text-zinc-100 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]"
               >
                 <Link href="/auth">
                   登录 / 注册
@@ -335,23 +348,33 @@ export default function HomePage() {
           <article className={`${obsidianCardClass} p-6 md:col-span-2`}>
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-mono tracking-wider text-zinc-500">[ RUNTIME ]</p>
-                <h2 className="mt-2 text-lg font-bold tracking-tight text-zinc-100">系统面板</h2>
+                <p className="text-[10px] font-mono font-bold tracking-[0.3em] text-zinc-600">
+                  RUNTIME
+                </p>
+                <h2 className="mt-2 text-xl font-extrabold tracking-tighter text-zinc-100">
+                  系统面板
+                </h2>
               </div>
-              <span className="font-mono text-sm tracking-tight text-cyan-300">
+              <span className="font-mono text-sm font-bold tracking-tighter text-cyan-400">
                 pending={loadingPendingCount ? "..." : pendingCount}
               </span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-white/5 bg-zinc-900/70 p-4">
-                <p className="text-xs text-zinc-500">api_base_url</p>
-                <p className="mt-1 truncate font-mono text-xs tracking-tight text-cyan-300">
-                  {env.apiBaseUrl}
+              <div className="rounded-2xl border border-white/[0.03] bg-black/40 p-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+                  api_base_url
+                </p>
+                <p className="mt-1 truncate font-mono text-xs tracking-tight text-cyan-400">
+                  {isMounted ? env.apiBaseUrl : "载入中..."}
                 </p>
               </div>
-              <div className="rounded-xl border border-white/5 bg-zinc-900/70 p-4">
-                <p className="text-xs text-zinc-500">auth_state</p>
-                <p className="mt-1 text-sm text-zinc-300">{loginStatusLabel}</p>
+              <div className="rounded-2xl border border-white/[0.03] bg-black/40 p-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+                  auth_state
+                </p>
+                <p className="mt-1 text-sm font-medium tracking-tight text-zinc-300">
+                  {loginStatusLabel}
+                </p>
               </div>
             </div>
           </article>
