@@ -7,6 +7,8 @@ describe("useUserStore", () => {
       token: "",
       phone: "",
       role: "both",
+      memberLevel: "FREE",
+      isRealNameVerified: false,
       tokenExpiresAt: 0
     });
   });
@@ -22,6 +24,8 @@ describe("useUserStore", () => {
     expect(state.token).toBe("mock-token");
     expect(state.phone).toBe("13800000000");
     expect(state.role).toBe("service");
+    expect(state.memberLevel).toBe("FREE");
+    expect(state.isRealNameVerified).toBe(false);
     expect(state.getValidToken()).toBe("mock-token");
   });
 
@@ -30,6 +34,8 @@ describe("useUserStore", () => {
       token: "expired",
       phone: "13800000000",
       role: "both",
+      memberLevel: "FREE",
+      isRealNameVerified: false,
       tokenExpiresAt: Date.now() - 1000
     });
 

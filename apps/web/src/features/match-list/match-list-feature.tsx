@@ -47,6 +47,7 @@ import { getErrorMessage } from "@/utils/error-message";
 
 type MatchStatusFilter = "all" | "pending" | "confirmed" | "invalid";
 type MatchStatus = "pending" | "confirmed" | "invalid";
+type TargetStatus = "PENDING" | "CONFIRMED" | "REJECTED";
 
 export type MatchCardItem = {
   matchId: number;
@@ -54,6 +55,7 @@ export type MatchCardItem = {
   resourceId: number;
   score: number;
   status: MatchStatus;
+  targetStatus: TargetStatus;
   locationTags: string[];
   skillTags: string[];
   maskedContact: string;
@@ -101,6 +103,56 @@ function normalizeStatus(value: unknown): MatchStatus {
   return "pending";
 }
 
+function normalizeTargetStatus(value: unknown, sourceStatus: unknown): TargetStatus {
+  if (value === "CONFIRMED") {
+    return "CONFIRMED";
+  }
+  if (value === "REJECTED") {
+    return "REJECTED";
+  }
+  if (value === "PENDING") {
+    return "PENDING";
+  }
+
+  // Mock fallback per spec.
+  return sourceStatus === "CONFIRMED" ? "PENDING" : "PENDING";
+}
+
+function getYouHandshakeMeta(status: MatchStatus): { label: string; dotClassName: string } {
+  if (status === "confirmed") {
+    return {
+      label: "[ YOU: READY ]",
+      dotClassName: "bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.7)]"
+    };
+  }
+
+  return {
+    label: "[ YOU: PENDING ]",
+    dotClassName: "bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.7)]"
+  };
+}
+
+function getTargetHandshakeMeta(status: TargetStatus): { label: string; dotClassName: string } {
+  if (status === "CONFIRMED") {
+    return {
+      label: "[ TARGET: READY ]",
+      dotClassName: "bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.7)]"
+    };
+  }
+
+  if (status === "REJECTED") {
+    return {
+      label: "[ TARGET: REJECTED ]",
+      dotClassName: "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.7)]"
+    };
+  }
+
+  return {
+    label: "[ TARGET: AWAITING ]",
+    dotClassName: "animate-pulse bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.75)]"
+  };
+}
+
 function normalizeMatch(item: MatchItem & Record<string, unknown>, index: number): MatchCardItem {
   const matchId = Number(item.matchId);
   const needId = Number(item.needId);
@@ -113,6 +165,7 @@ function normalizeMatch(item: MatchItem & Record<string, unknown>, index: number
     resourceId: Number.isFinite(resourceId) ? resourceId : 0,
     score: Number.isFinite(score) ? score : 0,
     status: normalizeStatus(item.status),
+    targetStatus: normalizeTargetStatus(item.targetStatus, item.status),
     locationTags: normalizeTextList(
       item.locationTags ?? item.regionTags ?? item.areaTags ?? item.location
     ).slice(0, 3),
@@ -421,6 +474,8 @@ function MatchListContent() {
               const scoreWidth = Math.max(4, Math.min(100, item.score));
               const isPending = item.status === "pending";
               const isSubmitting = submittingId === item.matchId && confirmMutation.isPending;
+              const youHandshakeMeta = getYouHandshakeMeta(item.status);
+              const targetHandshakeMeta = getTargetHandshakeMeta(item.targetStatus);
 
               return (
                 <motion.li
@@ -472,6 +527,35 @@ function MatchListContent() {
                               animate={{ width: `${scoreWidth}%` }}
                               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                             />
+                          </div>
+                          <div className="rounded-xl border border-white/[0.03] bg-black/40 p-3 shadow-[inset_0_2px_10px_rgba(0,0,0,0.6)]">
+                            <p className="mb-2 text-[10px] font-mono tracking-[0.2em] text-zinc-600">
+                              HANDSHAKE MONITOR
+                            </p>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <div className="flex items-center gap-2 rounded-lg border border-white/[0.03] bg-black/40 px-2.5 py-2">
+                                <span
+                                  className={cn(
+                                    "h-2 w-2 rounded-full",
+                                    youHandshakeMeta.dotClassName
+                                  )}
+                                />
+                                <span className="font-mono text-[10px] tracking-widest text-zinc-300">
+                                  {youHandshakeMeta.label}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 rounded-lg border border-white/[0.03] bg-black/40 px-2.5 py-2">
+                                <span
+                                  className={cn(
+                                    "h-2 w-2 rounded-full",
+                                    targetHandshakeMeta.dotClassName
+                                  )}
+                                />
+                                <span className="font-mono text-[10px] tracking-widest text-zinc-300">
+                                  {targetHandshakeMeta.label}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
 

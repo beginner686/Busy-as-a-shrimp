@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import React from "react";
 import { AdminNav } from "./AdminNav";
 import { MswProvider } from "../src/components/msw-provider";
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </div>
         </QueryProvider>
-
       </body>
     </html>
   );

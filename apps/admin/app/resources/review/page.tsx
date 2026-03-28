@@ -243,8 +243,6 @@ export default function ResourceReviewPage() {
     if (!undoToast) {
       return;
     }
-
-    }
     const controller = undoControllersRef.current.get(undoToast.operationId);
     if (controller) {
       controller.abort();

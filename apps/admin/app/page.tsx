@@ -148,7 +148,7 @@ export default function AdminHomePage() {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
-  const [profile, setProfile] = useState<AdminSessionProfile | null>(null);
+  const [, setProfile] = useState<AdminSessionProfile | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
 
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -314,13 +314,10 @@ export default function AdminHomePage() {
         method: "PUT",
         body: JSON.stringify({
           decision,
-          reason:
-            decision === "reject" ? "管理员手工拒绝。" : "管理员审批通过。"
+          reason: decision === "reject" ? "管理员手工拒绝。" : "管理员审批通过。"
         })
       });
-      setActionMessage(
-        `资源 ${resourceId} 已确认${decision === "approve" ? "审核通过" : "拒绝"}`
-      );
+      setActionMessage(`资源 ${resourceId} 已确认${decision === "approve" ? "审核通过" : "拒绝"}`);
       await Promise.all([loadResources(token), loadStats(token)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to review resource");
@@ -388,7 +385,7 @@ export default function AdminHomePage() {
     anchor.download = `captain-ranking-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(anchor);
     anchor.click();
-      anchor.remove();
+    anchor.remove();
     URL.revokeObjectURL(url);
   }
 
@@ -402,7 +399,10 @@ export default function AdminHomePage() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.headerRow} style={{ justifyContent: "flex-end", marginBottom: "12px" }}>
+      <div
+        className={styles.headerRow}
+        style={{ justifyContent: "flex-end", marginBottom: "12px" }}
+      >
         <div className={styles.topActions}>
           <button
             type="button"
