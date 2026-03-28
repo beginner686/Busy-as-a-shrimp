@@ -3,9 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "echo \"database package build skipped\"",
-    "lint": "echo \"lint not configured\"",
-    "test": "echo \"test not configured\""
+    "build": "prisma generate",
+    "generate": "prisma generate",
+    "validate": "prisma validate",
+    "migrate:status": "prisma migrate status",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:resolve:init": "prisma migrate resolve --applied 20260328161000_init",
+    "db:push": "prisma db push",
+    "lint": "prisma validate",
+    "test": "prisma validate"
   },
   "devDependencies": {
     "prisma": "^5.20.0"

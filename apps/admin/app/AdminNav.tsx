@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -28,32 +28,60 @@ export function AdminNav() {
   return (
     <nav className="admin-nav glass" style={{ justifyContent: "space-between" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-        <Link 
-          href="/" 
-          style={{ fontSize: "18px", fontWeight: "bold", color: "#fff", marginRight: "24px", cursor: "pointer" }}
+        <Link
+          href="/"
+          style={{
+            fontSize: "18px",
+            fontWeight: "bold",
+            color: "#fff",
+            marginRight: "24px",
+            cursor: "pointer"
+          }}
         >
-          🦐 虾忙管理控制台
+          Busy as a Shrimp Admin
         </Link>
-        <Link className={`nav-item ${pathname === "/" ? "active" : ""}`} href="/">首页</Link>
-        <Link className={`nav-item ${pathname === "/dashboard" ? "active" : ""}`} href="/dashboard">统计看板</Link>
-        <Link className={`nav-item ${pathname === "/users" ? "active" : ""}`} href="/users">用户列表</Link>
-        <Link className={`nav-item ${pathname === "/resources/review" ? "active" : ""}`} href="/resources/review">资源审核</Link>
-        <Link className={`nav-item ${pathname === "/captain/ranking" ? "active" : ""}`} href="/captain/ranking">团长排行</Link>
+        <Link className={`nav-item ${pathname === "/" ? "active" : ""}`} href="/">
+          Home
+        </Link>
+        <Link className={`nav-item ${pathname === "/dashboard" ? "active" : ""}`} href="/dashboard">
+          Dashboard
+        </Link>
+        <Link className={`nav-item ${pathname === "/users" ? "active" : ""}`} href="/users">
+          Users
+        </Link>
+        <Link
+          className={`nav-item ${pathname === "/resources/review" ? "active" : ""}`}
+          href="/resources/review"
+        >
+          Resource Review
+        </Link>
+        <Link
+          className={`nav-item ${pathname === "/captain/ranking" ? "active" : ""}`}
+          href="/captain/ranking"
+        >
+          Captain Ranking
+        </Link>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <span style={{ color: "#8de6ff", fontSize: "14px" }}>
-          管理员：{profile?.username ?? "admin"}
+          Admin: {profile?.username ?? "admin"}
         </span>
-        <button 
+        <button
           onClick={handleLogout}
           style={{
-            height: "34px", border: "1px solid rgba(255,123,145,0.7)", borderRadius: "8px", 
-            padding: "0 14px", color: "#ffd6df", background: "rgba(255,92,123,0.16)", cursor: "pointer",
-            fontSize: "13px", fontWeight: 500
+            height: "34px",
+            border: "1px solid rgba(255,123,145,0.7)",
+            borderRadius: "8px",
+            padding: "0 14px",
+            color: "#ffd6df",
+            background: "rgba(255,92,123,0.16)",
+            cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: 500
           }}
         >
-          退出登录
+          Sign out
         </button>
       </div>
     </nav>
