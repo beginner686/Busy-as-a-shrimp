@@ -1,29 +1,37 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+﻿import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ok } from "../../common/api-response";
+import { CurrentUser } from "../user/decorators/current-user.decorator";
+import { JwtAuthGuard } from "../user/guards/jwt-auth.guard";
+import { MatchListQueryDto, RunMatchDto } from "./dto/match.dto";
 import { MatchService } from "./match.service";
-import { RunMatchDto } from "./dto/match.dto";
+
+interface AuthUser {
+  userId: bigint | string;
+  role: string;
+}
 
 @Controller("match")
+@UseGuards(JwtAuthGuard)
 export class MatchController {
   constructor(private readonly matchService: MatchService) {}
 
   @Post("run")
-  run(@Body() payload: RunMatchDto) {
-    return ok(this.matchService.run(payload), "匹配任务已创建");
+  async run(@CurrentUser() user: AuthUser, @Body() payload: RunMatchDto) {
+    return ok(await this.matchService.run(BigInt(user.userId), payload), "match task queued");
   }
 
   @Get("list")
-  list() {
-    return ok(this.matchService.list());
+  async list(@CurrentUser() user: AuthUser, @Query() query: MatchListQueryDto) {
+    return ok(await this.matchService.list(BigInt(user.userId), query));
   }
 
   @Post(":id/confirm")
-  confirm(@Param("id") id: string) {
-    return ok(this.matchService.confirm(Number(id)), "匹配已确认");
+  async confirm(@CurrentUser() user: AuthUser, @Param("id") id: string) {
+    return ok(await this.matchService.confirm(BigInt(user.userId), Number(id)), "match confirmed");
   }
 
   @Post(":id/reject")
-  reject(@Param("id") id: string) {
-    return ok(this.matchService.reject(Number(id)), "匹配已拒绝");
+  async reject(@CurrentUser() user: AuthUser, @Param("id") id: string) {
+    return ok(await this.matchService.reject(BigInt(user.userId), Number(id)), "match invalidated");
   }
 }
