@@ -1,5 +1,4 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+﻿import type { Metadata } from "next";
 import React from "react";
 import { AdminNav } from "./AdminNav";
 import { MswProvider } from "../src/components/msw-provider";
@@ -7,8 +6,8 @@ import { QueryProvider } from "../src/components/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI 资源共享平台 - 管理控制台",
-  description: "全栈业务运营与审核后台"
+  title: "Busy as a Shrimp Admin",
+  description: "Admin console for operations, resource review, and captain ranking."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </div>
         </QueryProvider>
-
       </body>
     </html>
   );

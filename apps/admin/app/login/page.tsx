@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./page.module.css";
+
 import { getAdminToken, saveAdminSession, type AdminSessionProfile } from "../../lib/auth";
+import styles from "./page.module.css";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -28,7 +29,6 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for session handover from main store (port 3000)
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const token = params.get("token");
@@ -36,12 +36,12 @@ export default function AdminLoginPage() {
 
       if (token && profileStr) {
         try {
-          const profile = JSON.parse(profileStr);
+          const profile = JSON.parse(profileStr) as AdminSessionProfile;
           saveAdminSession(token, profile);
           router.replace("/");
           return;
-        } catch (e) {
-          console.error("Handover failed", e);
+        } catch (handoverError) {
+          console.error("Failed to restore admin session", handoverError);
         }
       }
     }
@@ -76,8 +76,8 @@ export default function AdminLoginPage() {
 
       saveAdminSession(body.data.token, body.data.profile);
       router.replace("/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -86,11 +86,11 @@ export default function AdminLoginPage() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <h1>虾忙后台管理登录</h1>
+        <h1>Busy as a Shrimp Admin</h1>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label>
-            用户名
+            Username
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
           </label>
 
           <label>
-            密码
+            Password
             <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
@@ -110,13 +110,32 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 className={styles.eyeBtn}
-                onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? "隐藏密码" : "显示密码"}
+                onClick={() => setShowPassword((current) => !current)}
+                title={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22" />
+                  </svg>
                 ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
                 )}
               </button>
             </div>
@@ -125,10 +144,9 @@ export default function AdminLoginPage() {
           {error ? <p className={styles.error}>{error}</p> : null}
 
           <button type="submit" disabled={loading}>
-            {loading ? "正在登录..." : "登 录"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
       </section>
     </main>
   );

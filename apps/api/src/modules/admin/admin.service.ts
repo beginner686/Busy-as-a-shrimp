@@ -1,16 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../../common/prisma.service";
-import {
-  AdminResourceStatus,
-  AdminUserRole,
-  AdminUserStatus,
-  CaptainLevel,
-  QueryResourcesDto,
-  QueryUsersDto
-} from "./dto/admin.dto";
+﻿import { Injectable } from "@nestjs/common";
 import { Prisma, ResourceStatus } from "@prisma/client";
+import { PrismaService } from "../../common/prisma.service";
+import { AdminUserStatus, CaptainLevel, QueryResourcesDto, QueryUsersDto } from "./dto/admin.dto";
 
-interface ExtendedPrisma extends PrismaService {
+type ExtendedPrisma = PrismaService & {
   announcement: {
     count: () => Promise<number>;
     create: (args: { data: { content: string; publisher: string } }) => Promise<{
@@ -19,10 +12,7 @@ interface ExtendedPrisma extends PrismaService {
       publisher: string;
       createdAt: Date;
     }>;
-    findMany: (args: {
-      orderBy: { createdAt: "desc" };
-      take: number;
-    }) => Promise<
+    findMany: (args: { orderBy: { createdAt: "desc" }; take: number }) => Promise<
       Array<{
         noticeId: bigint;
         content: string;
@@ -31,6 +21,51 @@ interface ExtendedPrisma extends PrismaService {
       }>
     >;
   };
+};
+
+function normalizeTagList(value: Prisma.JsonValue): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => normalizeTagList(item))
+      .filter((item, index, items) => items.indexOf(item) === index);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+
+  if (typeof value === "number") {
+    return [String(value)];
+  }
+
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap((item) => normalizeTagList(item as Prisma.JsonValue));
+  }
+
+  return [];
+}
+
+function normalizePriceRange(
+  value: Prisma.JsonValue | null
+): { min?: number; max?: number } | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const record = value as Record<string, Prisma.JsonValue>;
+  const min = Number(record.min);
+  const max = Number(record.max);
+  const result: { min?: number; max?: number } = {};
+
+  if (Number.isFinite(min)) {
+    result.min = min;
+  }
+  if (Number.isFinite(max)) {
+    result.max = max;
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 @Injectable()
@@ -46,10 +81,10 @@ export class AdminService {
     const where: Prisma.UserWhereInput = {};
 
     if (status) {
-      where.status = status as any;
+      where.status = status as never;
     }
     if (role) {
-      where.role = role as any;
+      where.role = role as never;
     }
 
     const list = await this.prisma.user.findMany({
@@ -58,35 +93,24 @@ export class AdminService {
       take: 50
     });
 
-    return list.map((u) => {
-      const user = u as unknown as {
-        userId: bigint;
-        maskedPhone?: string;
-        role: string;
-        city?: string;
-        memberLevel: string;
-        status: string;
-        createdAt: Date;
-        captainLevel?: string;
-      };
-      return {
-        userId: Number(user.userId),
-        phoneMasked: user.maskedPhone || "已加密",
-        role: user.role,
-        city: user.city || "未知",
-        memberLevel: user.memberLevel,
-        status: user.status,
-        createdAt: user.createdAt.toISOString(),
-        captainLevel: user.captainLevel
-      };
-    });
+    return list.map((user) => ({
+      userId: Number(user.userId),
+      phoneMasked: user.maskedPhone || "hidden",
+      role: user.role,
+      city: user.city || "Unknown",
+      memberLevel: user.memberLevel,
+      status: user.status,
+      createdAt: user.createdAt.toISOString(),
+      captainLevel: user.captainLevel
+    }));
   }
 
   async updateUserStatus(id: number, status: AdminUserStatus) {
     const updated = await this.prisma.user.update({
       where: { userId: BigInt(id) },
-      data: { status: status as any }
+      data: { status: status as never }
     });
+
     return {
       userId: Number(updated.userId),
       status: updated.status
@@ -107,13 +131,16 @@ export class AdminService {
       take: 50
     });
 
-    return list.map((r) => ({
-      resourceId: Number(r.resourceId),
-      userId: Number(r.userId),
-      resourceType: r.resourceType,
-      status: r.status,
-      createdAt: (r.lastUpdate || r.verifiedAt || r.resourceId).toString(), // Fallback
-      verifiedAt: r.verifiedAt?.toISOString()
+    return list.map((resource) => ({
+      resourceId: Number(resource.resourceId),
+      userId: Number(resource.userId),
+      resourceType: resource.resourceType,
+      tags: normalizeTagList(resource.tags),
+      areaCode: resource.areaCode ?? undefined,
+      priceRange: normalizePriceRange(resource.priceRange),
+      status: resource.status,
+      createdAt: (resource.lastUpdate ?? resource.verifiedAt)?.toISOString() ?? "",
+      verifiedAt: resource.verifiedAt?.toISOString()
     }));
   }
 
@@ -163,6 +190,7 @@ export class AdminService {
         publisher: publisher || "admin"
       }
     });
+
     return {
       noticeId: created.noticeId.toString(),
       content: created.content,
@@ -177,11 +205,11 @@ export class AdminService {
       take: 20
     });
 
-    return list.map((a) => ({
-      noticeId: a.noticeId.toString(),
-      content: a.content,
-      publisher: a.publisher,
-      createdAt: a.createdAt.toISOString()
+    return list.map((item) => ({
+      noticeId: item.noticeId.toString(),
+      content: item.content,
+      publisher: item.publisher,
+      createdAt: item.createdAt.toISOString()
     }));
   }
 
@@ -199,24 +227,23 @@ export class AdminService {
       take: 10
     });
 
-    const inviterIds = ranking.map((r) => r.inviterId);
+    const inviterIds = ranking.map((item) => item.inviterId);
     const users = await this.prisma.user.findMany({
       where: { userId: { in: inviterIds } }
     });
+    const userMap = new Map(users.map((item) => [item.userId.toString(), item]));
 
-    const userMap = new Map(users.map((u) => [u.userId.toString(), u]));
-
-    return ranking.map((r) => {
-      const user: any = userMap.get(r.inviterId.toString());
+    return ranking.map((item) => {
+      const user = userMap.get(item.inviterId.toString());
       const level = user?.captainLevel || "normal";
       const commissionRate = level === "gold" ? 0.15 : level === "advanced" ? 0.1 : 0.05;
 
       return {
-        captainId: Number(r.inviterId),
-        name: `团长_${r.inviterId.toString().slice(-4)}`,
+        captainId: Number(item.inviterId),
+        name: `Captain ${item.inviterId.toString().slice(-4)}`,
         level,
-        score: r._count.recordId * 100,
-        monthInvites: r._count.recordId,
+        score: item._count.recordId * 100,
+        monthInvites: item._count.recordId,
         commissionRate
       };
     });
@@ -225,11 +252,12 @@ export class AdminService {
   async updateCaptainLevel(id: number, level: CaptainLevel) {
     const updated = await this.prisma.user.update({
       where: { userId: BigInt(id) },
-      data: { captainLevel: level } as unknown as Prisma.UserUpdateInput
+      data: { captainLevel: level } as Prisma.UserUpdateInput
     });
+
     return {
       captainId: Number(updated.userId),
-      level: (updated as unknown as { captainLevel: string }).captainLevel
+      level: updated.captainLevel
     };
   }
 }

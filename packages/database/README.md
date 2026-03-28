@@ -1,18 +1,18 @@
-# Database Package
+﻿# Database Package
 
-## 目标
+## Purpose
 
-对齐需求图中的核心业务表：
+This package owns the Prisma schema, generated client, and migration history for the project.
 
-- users
-- resources
-- matches
-- captain_commissions
-- invite_records
-- contents
+## Common Commands
 
-## 使用
+1. `pnpm --filter @airp/database build`
+2. `pnpm --filter @airp/database validate`
+3. `pnpm --filter @airp/database migrate:status`
+4. `pnpm --filter @airp/database migrate:deploy`
+5. `pnpm --filter @airp/database db:push`
 
-1. 设置 `DATABASE_URL`
-2. 执行 `pnpm --filter @airp/database prisma generate`
-3. 执行 `pnpm --filter @airp/database prisma db push`
+## Notes
+
+- The initial migration baseline is stored under `prisma/migrations/20260328161000_init`.
+- Local Docker MySQL is aligned with the root `.env` values: database `busy_as_a_shrimp` and root password `123456`.

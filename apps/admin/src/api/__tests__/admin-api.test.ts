@@ -1,10 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+﻿import { describe, expect, it, vi } from "vitest";
 import { createAdminApi } from "../admin-api";
 
 describe("createAdminApi", () => {
   it("loads dashboard stats", async () => {
     const client = {
-      get: vi.fn().mockResolvedValue({ totalUsers: 100, totalResources: 20, matchRate: 0.5 }),
+      get: vi.fn().mockResolvedValue({
+        totalUsers: 100,
+        activeUsers: 90,
+        totalResources: 20,
+        pendingResources: 3,
+        activeCaptains: 12,
+        matchRate: 50,
+        announcementCount: 2
+      }),
       put: vi.fn()
     };
     const api = createAdminApi(client);
@@ -20,7 +28,7 @@ describe("createAdminApi", () => {
       get: vi
         .fn()
         .mockResolvedValueOnce([{ userId: 10001 }])
-        .mockResolvedValueOnce([{ resourceId: 20001 }]),
+        .mockResolvedValueOnce([{ resourceId: 20001, status: "pending", tags: [] }]),
       put: vi.fn().mockResolvedValue({ resourceId: 20001, status: "active" })
     };
     const api = createAdminApi(client);
