@@ -12,7 +12,7 @@ export default defineConfig({
     url: "http://127.0.0.1:3000",
     reuseExistingServer: true,
     env: {
-      NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:3001/api/v1",
+      NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:8081/api/v1",
       NEXT_PUBLIC_APP_ENV: "local",
       NEXT_PUBLIC_ENABLE_MSW: "1"
     }

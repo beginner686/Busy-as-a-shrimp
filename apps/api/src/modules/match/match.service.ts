@@ -183,12 +183,7 @@ export class MatchService {
         resource: {
           select: {
             areaCode: true,
-            tags: true,
-            user: {
-              select: {
-                maskedPhone: true
-              }
-            }
+            tags: true
           }
         }
       },
@@ -215,7 +210,7 @@ export class MatchService {
         contactMasked:
           status === MatchStatus.confirmed
             ? this.buildVirtualContact(Number(row.matchId))
-            : this.maskContact(row.resource.user?.maskedPhone),
+            : this.maskContact(undefined),
         pushTime: row.pushTime?.toISOString()
       };
     });
