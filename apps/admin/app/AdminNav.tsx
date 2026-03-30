@@ -38,6 +38,8 @@ export function AdminNav() {
     { path: "/users", label: "用户管理" },
     { path: "/resources/review", label: "资源审核" },
     { path: "/captain/ranking", label: "船长排行" },
+    { path: "/activity", label: "拉新活动" },
+    { path: "/tasks", label: "任务管理" },
     { path: "/announcements", label: "平台公告" }
   ];
 
