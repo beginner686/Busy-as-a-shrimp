@@ -18,11 +18,11 @@ describe("admin loadClientEnv", () => {
   });
 
   it("returns parsed env values", () => {
-    process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:3001/api/v1";
+    process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:8081/api/v1";
     process.env.NEXT_PUBLIC_APP_ENV = "local";
 
     expect(loadClientEnv()).toEqual({
-      apiBaseUrl: "http://localhost:3001/api/v1",
+      apiBaseUrl: "http://localhost:8081/api/v1",
       appEnv: "local"
     });
   });

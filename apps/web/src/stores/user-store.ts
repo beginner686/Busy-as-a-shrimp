@@ -4,20 +4,32 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type UserRole = "service" | "resource" | "both";
+type MemberLevel = "FREE" | "PRO" | "LIFETIME";
 
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const TOKEN_COOKIE_KEY = "airp_token";
 
-interface UserState {
+interface UserStoreState {
   token: string;
   phone: string;
+  avatar: string | null;
   role: UserRole;
+  memberLevel: MemberLevel;
+  isRealNameVerified: boolean;
   tokenExpiresAt: number;
+}
+
+interface UserStoreActions {
   setLogin: (payload: { token: string; phone: string; role?: UserRole }) => void;
+  setAvatar: (avatar: string | null) => void;
   setRole: (role: UserRole) => void;
+  setMemberLevel: (level: MemberLevel) => void;
+  setRealNameVerified: (verified: boolean) => void;
   logout: () => void;
   getValidToken: () => string;
 }
+
+type UserStore = UserStoreState & UserStoreActions;
 
 const memoryStorage = {
   getItem: () => null,
@@ -39,12 +51,15 @@ function clearTokenCookie() {
   document.cookie = `${TOKEN_COOKIE_KEY}=; path=/; max-age=0; SameSite=Lax`;
 }
 
-export const useUserStore = create<UserState>()(
+export const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
       token: "",
       phone: "",
+      avatar: null,
       role: "both",
+      memberLevel: "FREE",
+      isRealNameVerified: false,
       tokenExpiresAt: 0,
       setLogin(payload) {
         const tokenExpiresAt = Date.now() + TOKEN_TTL_MS;
@@ -52,19 +67,34 @@ export const useUserStore = create<UserState>()(
         set({
           token: payload.token,
           phone: payload.phone,
+          avatar: null,
           role: payload.role ?? "both",
+          memberLevel: "FREE",
+          isRealNameVerified: false,
           tokenExpiresAt
         });
       },
+      setAvatar(avatar) {
+        set({ avatar });
+      },
       setRole(role) {
         set({ role });
+      },
+      setMemberLevel(memberLevel) {
+        set({ memberLevel });
+      },
+      setRealNameVerified(verified) {
+        set({ isRealNameVerified: verified });
       },
       logout() {
         clearTokenCookie();
         set({
           token: "",
           phone: "",
+          avatar: null,
           role: "both",
+          memberLevel: "FREE",
+          isRealNameVerified: false,
           tokenExpiresAt: 0
         });
       },
@@ -78,7 +108,10 @@ export const useUserStore = create<UserState>()(
           set({
             token: "",
             phone: "",
+            avatar: null,
             role: "both",
+            memberLevel: "FREE",
+            isRealNameVerified: false,
             tokenExpiresAt: 0
           });
           return "";
@@ -94,11 +127,14 @@ export const useUserStore = create<UserState>()(
       partialize: (state) => ({
         token: state.token,
         phone: state.phone,
+        avatar: state.avatar,
         role: state.role,
+        memberLevel: state.memberLevel,
+        isRealNameVerified: state.isRealNameVerified,
         tokenExpiresAt: state.tokenExpiresAt
       })
     }
   )
 );
 
-export type { UserRole };
+export type { UserRole, MemberLevel };

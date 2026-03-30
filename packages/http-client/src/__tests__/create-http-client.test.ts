@@ -9,7 +9,7 @@ describe("createHttpClient", () => {
       json: async () => ({ success: true, message: "ok", data: { id: 7 } })
     });
 
-    const client = createHttpClient({ baseUrl: "http://localhost:3001/api/v1", fetcher });
+    const client = createHttpClient({ baseUrl: "http://localhost:8081/api/v1", fetcher });
     const data = await client.get<{ id: number }>("/user/info");
 
     expect(data).toEqual({ id: 7 });
@@ -23,7 +23,7 @@ describe("createHttpClient", () => {
       json: async () => ({ success: false, message: "token expired", data: null })
     });
 
-    const client = createHttpClient({ baseUrl: "http://localhost:3001/api/v1", fetcher });
+    const client = createHttpClient({ baseUrl: "http://localhost:8081/api/v1", fetcher });
 
     await expect(client.get("/user/info")).rejects.toMatchObject({
       code: "AUTH_EXPIRED"
@@ -37,7 +37,7 @@ describe("createHttpClient", () => {
       json: async () => ({ success: false, message: "too many requests", data: null })
     });
 
-    const client = createHttpClient({ baseUrl: "http://localhost:3001/api/v1", fetcher });
+    const client = createHttpClient({ baseUrl: "http://localhost:8081/api/v1", fetcher });
 
     await expect(client.get("/user/info")).rejects.toMatchObject({
       status: 429,
@@ -53,7 +53,7 @@ describe("createHttpClient", () => {
     });
     const onAuthExpired = vi.fn();
     const client = createHttpClient({
-      baseUrl: "http://localhost:3001/api/v1",
+      baseUrl: "http://localhost:8081/api/v1",
       fetcher,
       onAuthExpired
     });

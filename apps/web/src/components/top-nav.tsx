@@ -2,12 +2,23 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, List, ListChecks, LogIn, LogOut, Menu, Plus, UserCircle2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  BarChart3,
+  Crown,
+  Home,
+  List,
+  ListChecks,
+  LogIn,
+  LogOut,
+  Menu,
+  Plus,
+  UserCircle2
+} from "lucide-react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStatus } from "@/stores/use-auth-status";
+import { useUserStore } from "@/stores/user-store";
 import { toast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -33,7 +44,9 @@ import {
 
 const publicNavItems = [
   { href: "/", label: "首页", icon: Home },
-  { href: "/resource/list", label: "资源列表", icon: List }
+  { href: "/resource/list", label: "资源列表", icon: List },
+  { href: "/member", label: "星际通行证", icon: Crown },
+  { href: "/captain", label: "团长中枢", icon: BarChart3 }
 ] as const;
 
 const authNavItems = [{ href: "/match/list", label: "匹配列表", icon: ListChecks }] as const;
@@ -58,22 +71,26 @@ function maskPhone(phone: string): string {
   return `${phone.slice(0, 3)}****${phone.slice(-4)}`;
 }
 
+function getNavToneClass(href: string): string {
+  if (href === "/member") {
+    return "text-violet-300/80 hover:text-violet-100";
+  }
+  if (href === "/captain") {
+    return "text-cyan-300/80 hover:text-cyan-100";
+  }
+  return "";
+}
+
 export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { hydrated, isLoggedIn, role, phone, logout } = useAuthStatus();
+  const avatar = useUserStore((state) => state.avatar);
 
   const loggedIn = hydrated && isLoggedIn;
   const navItems = loggedIn ? [...publicNavItems, ...authNavItems] : publicNavItems;
-
-  const userInitial = useMemo(() => {
-    if (!phone) {
-      return "虾";
-    }
-    return phone.slice(-2);
-  }, [phone]);
 
   function isActivePath(href: string) {
     if (href === "/") {
@@ -105,7 +122,7 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 mb-6 border-b border-white/5 bg-zinc-950/60 shadow-[0_4px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+    <header className="sticky top-0 z-50 mb-6 border-b border-white/5 bg-zinc-950/70 shadow-[0_4px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
       <div className="flex h-16 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <div className="md:hidden">
@@ -115,7 +132,7 @@ export function TopNav() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="rounded-full border border-white/10 bg-zinc-900 text-zinc-100 shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-800 hover:text-white md:hidden"
+                  className="rounded-full border border-white/10 bg-white/5 text-zinc-300 shadow-sm transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-white/10 hover:text-white md:hidden"
                   aria-label="打开导航菜单"
                 >
                   <Menu className="h-5 w-5" />
@@ -135,7 +152,8 @@ export function TopNav() {
                           "justify-start rounded-full transition-all duration-200 ease-out",
                           isActivePath(item.href)
                             ? "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
-                            : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                            : "text-zinc-400 hover:bg-white/10 hover:text-white",
+                          !isActivePath(item.href) && getNavToneClass(item.href)
                         )}
                       >
                         <Link
@@ -207,14 +225,12 @@ export function TopNav() {
 
           <Link
             href="/"
-            className="rounded-full px-3 py-1.5 text-lg font-bold tracking-tighter transition-all duration-200 ease-out hover:bg-white/5"
+            className="rounded-full bg-gradient-to-b from-white to-zinc-400 bg-clip-text px-3 py-1.5 text-lg font-bold tracking-tighter text-transparent transition-all duration-200 ease-out hover:bg-white/5"
           >
-            <span className="bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent">
-              虾忙
-            </span>
+            虾忙
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex" aria-label="主导航">
+          <nav className="hidden md:flex items-center gap-1" aria-label="主导航">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -223,6 +239,7 @@ export function TopNav() {
                 onFocus={item.href === "/match/list" ? prefetchMatchListOnIntent : undefined}
                 className={cn(
                   "rounded-full px-3 py-1.5 text-sm font-medium text-zinc-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-white",
+                  !isActivePath(item.href) && getNavToneClass(item.href),
                   isActivePath(item.href) && "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
                 )}
               >
@@ -237,7 +254,7 @@ export function TopNav() {
             <>
               <Button
                 asChild
-                className="hidden rounded-full bg-cyan-500 text-black font-medium shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] sm:inline-flex"
+                className="hidden rounded-full bg-cyan-500 font-semibold text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] sm:inline-flex"
               >
                 <Link href="/resource/new">
                   <Plus className="h-4 w-4" />
@@ -251,9 +268,17 @@ export function TopNav() {
                     variant="ghost"
                     className="h-10 gap-2 rounded-full border border-white/10 bg-zinc-900 px-2 text-white shadow-sm transition-all duration-200 ease-out hover:bg-zinc-800 hover:text-white"
                   >
-                    <Avatar className="h-8 w-8 border border-white/15">
-                      <AvatarFallback>{userInitial}</AvatarFallback>
-                    </Avatar>
+                    {avatar ? (
+                      <img
+                        src={avatar}
+                        alt="User Avatar"
+                        className="h-8 w-8 rounded-full object-cover border border-white/10 shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                      />
+                    ) : (
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/10 shadow-[0_0_10px_rgba(255,255,255,0.08)]">
+                        <UserCircle2 className="h-4 w-4 text-zinc-300" />
+                      </span>
+                    )}
                     <span className="hidden text-sm text-zinc-300 sm:inline">
                       {maskPhone(phone)}
                     </span>

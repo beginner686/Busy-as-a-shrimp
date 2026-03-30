@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 import { getAdminApi } from "@/api";
 import type { AdminResource, ReviewDecision } from "@/api/admin-api";
@@ -61,6 +62,8 @@ function getRiskSummary(resource: AdminResource): string {
 
 export default function ResourceReviewPage() {
   const queryClient = useQueryClient();
+  const [notice, setNotice] = useState<string | null>(null);
+
   const resourcesQuery = useQuery({
     queryKey: RESOURCE_REVIEW_QUERY_KEY,
     queryFn: async (): Promise<AdminResource[]> => {
@@ -69,27 +72,23 @@ export default function ResourceReviewPage() {
     },
     staleTime: 30_000
   });
+
   const reviewMutation = useMutation({
     mutationFn: ({ resourceId, decision }: { resourceId: number; decision: ReviewDecision }) =>
       getAdminApi().reviewResource(resourceId, decision),
     onSuccess: (result) => {
+      setNotice(`资源 #${result.resourceId} 已更新为 ${result.status}`);
       void queryClient.invalidateQueries({ queryKey: RESOURCE_REVIEW_QUERY_KEY });
-      queryClient.setQueryData<AdminResource[] | undefined>(
-        RESOURCE_REVIEW_QUERY_KEY,
-        (current) => current?.filter((item) => item.resourceId !== result.resourceId) ?? []
-      );
     }
   });
 
-  const resources = resourcesQuery.data ?? [];
-  const notice = reviewMutation.isSuccess
-    ? `Resource #${reviewMutation.data.resourceId} updated to ${reviewMutation.data.status}.`
-    : reviewMutation.isError
-      ? getErrorMessage(reviewMutation.error)
-      : "";
+  const resources = resourcesQuery.data || [];
 
   function handleReview(resourceId: number, decision: ReviewDecision) {
-    reviewMutation.mutate({ resourceId, decision });
+    reviewMutation.mutate({
+      resourceId,
+      decision
+    });
   }
 
   return (

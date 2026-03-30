@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { getAdminApi } from "../src/api";
 import type { AdminStats } from "../src/api/admin-api";
 import {
   clearAdminSession,
@@ -31,69 +30,51 @@ const QUICK_LINKS = [
 
 export default function AdminHomePage() {
   const router = useRouter();
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<AdminSessionProfile | null>(null);
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [error] = useState<string | null>(null);
+  const [, setProfile] = useState<AdminSessionProfile | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [stats] = useState<AdminStats | null>(null);
 
   useEffect(() => {
-    const token = getAdminToken();
-    if (!token) {
+    const savedToken = getAdminToken();
+    if (!savedToken) {
       router.replace("/login");
       return;
     }
 
     setProfile(getAdminProfile());
-
-    let active = true;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const result = await getAdminApi().stats();
-        if (active) {
-          setStats(result);
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof Error ? loadError.message : "Failed to load admin home.");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-
-    return () => {
-      active = false;
-    };
+    setSessionReady(true);
+    setLoading(false);
   }, [router]);
 
-  function handleLogout() {
-    clearAdminSession();
-    router.replace("/login");
+  if (!sessionReady) {
+    return (
+      <main className={styles.page}>
+        <p className={styles.loading}>正在为您验证管理员鉴权核心...</p>
+      </main>
+    );
   }
 
   return (
     <main className={styles.page}>
-      <div className={styles.headerRow}>
-        <div>
-          <h1 className={styles.title}>Admin Control Center</h1>
-          <p className={styles.subtitle}>
-            Use this workspace to monitor operations and review data.
-          </p>
-          <p className={styles.sessionInfo}>Signed in as {profile?.username ?? "admin"}.</p>
-        </div>
+      <div
+        className={styles.headerRow}
+        style={{ justifyContent: "flex-end", marginBottom: "12px" }}
+      >
         <div className={styles.topActions}>
           <button type="button" className={styles.refreshBtn} onClick={() => router.refresh()}>
             Refresh shell
           </button>
-          <button type="button" className={styles.logoutBtn} onClick={handleLogout}>
+          <button
+            type="button"
+            className={styles.logoutBtn}
+            onClick={() => {
+              clearAdminSession();
+              router.replace("/login");
+            }}
+          >
             Sign out
           </button>
         </div>
@@ -105,7 +86,7 @@ export default function AdminHomePage() {
       <section className={styles.statsGrid}>
         <article className={styles.statCard}>
           <span className={styles.statLabel}>Total users</span>
-          <strong className={styles.statValue}>{stats?.totalUsers ?? "-"}</strong>
+          <strong className={strongName(styles.statValue)}>{stats?.totalUsers ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
           <span className={styles.statLabel}>Pending resources</span>
@@ -164,4 +145,8 @@ export default function AdminHomePage() {
       </section>
     </main>
   );
+}
+
+function strongName(className: string) {
+  return className;
 }

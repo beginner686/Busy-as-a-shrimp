@@ -103,7 +103,7 @@ packages/
 
 新增（建议）：
 
-- `NEXT_PUBLIC_API_BASE_URL`：API 完整基址，如 `http://localhost:3001/api/v1`
+- `NEXT_PUBLIC_API_BASE_URL`：API 完整基址，如 `http://localhost:8081/api/v1`
 - `NEXT_PUBLIC_APP_ENV`：`local | dev | staging | prod`
 
 规则：
