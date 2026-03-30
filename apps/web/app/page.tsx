@@ -8,7 +8,7 @@ import {
   CircleDot,
   Cpu,
   Loader2,
-  LogIn,
+  Lock,
   Rocket,
   Sparkles
 } from "lucide-react";
@@ -203,19 +203,21 @@ export default function HomePage() {
         </div>
 
         {!isLoggedIn && hydrated ? (
-          <article className={`${obsidianCardClass} mx-auto max-w-2xl p-8 text-center`}>
-            <p className="text-lg font-semibold tracking-tight text-zinc-100">
+          <article
+            className={`${obsidianCardClass} col-span-1 md:col-span-full flex flex-col items-center justify-center py-16 px-6 text-center`}
+          >
+            <h2 className="text-2xl font-black tracking-tight text-zinc-100 mb-3">
               请先登录以执行匹配调度
-            </p>
-            <p className="mt-2 text-sm text-zinc-400">
+            </h2>
+            <p className="text-sm text-zinc-400 max-w-md mx-auto">
               未登录状态下可访问基础入口，调度操作将跳转到认证页。
             </p>
             <Button
               asChild
-              className="mt-5 rounded-full bg-gradient-to-b from-zinc-800 to-zinc-950 px-6 text-white shadow-sm ring-1 ring-inset ring-white/10 transition-all duration-200 hover:-translate-y-[1px]"
+              className="mt-8 inline-flex items-center justify-center px-8 py-3 rounded-xl bg-cyan-500 text-black font-bold tracking-widest hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all uppercase"
             >
               <Link href="/auth">
-                <LogIn className="h-4 w-4" />
+                <Lock className="w-4 h-4 mr-2" />
                 去登录
               </Link>
             </Button>
