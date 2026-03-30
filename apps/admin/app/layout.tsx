@@ -6,8 +6,11 @@ import { QueryProvider } from "../src/components/providers/query-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Busy as a Shrimp Admin",
-  description: "Admin console for operations, resource review, and captain ranking."
+  title: "虾忙后台管理平台",
+  description: "虾忙 AI 资源共享平台 · 运营管理控制台",
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦐</text></svg>"
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

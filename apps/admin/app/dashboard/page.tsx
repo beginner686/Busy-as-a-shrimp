@@ -45,29 +45,29 @@ export default function DashboardPage() {
     <main className={styles.page}>
       <div className={styles.headerRow}>
         <div>
-          <h1 className={styles.title}>Admin Dashboard</h1>
-          <p className={styles.subtitle}>Operations summary for users, resources, and captains.</p>
+          <h1 className={styles.title}>数据看板</h1>
+          <p className={styles.subtitle}>用户、资源与船长的运营概况汇总。</p>
         </div>
       </div>
 
-      {loading ? <p className={styles.loading}>Loading dashboard data...</p> : null}
+      {loading ? <p className={styles.loading}>正在加载看板数据...</p> : null}
       {error ? <p className={styles.error}>{error}</p> : null}
 
       <section className={styles.statsGrid}>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Total users</span>
+          <span className={styles.statLabel}>用户总数</span>
           <strong className={styles.statValue}>{stats?.totalUsers ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Active users</span>
+          <span className={styles.statLabel}>活跃用户</span>
           <strong className={styles.statValue}>{stats?.activeUsers ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Total resources</span>
+          <span className={styles.statLabel}>资源总数</span>
           <strong className={styles.statValue}>{stats?.totalResources ?? "-"}</strong>
         </article>
         <article className={styles.statCard}>
-          <span className={styles.statLabel}>Pending review</span>
+          <span className={styles.statLabel}>待审核</span>
           <strong className={styles.statValue}>{stats?.pendingResources ?? "-"}</strong>
         </article>
       </section>
@@ -75,11 +75,11 @@ export default function DashboardPage() {
       {!loading && stats ? (
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h2>Platform health</h2>
+            <h2>平台健康状态</h2>
           </div>
           <p className={styles.message}>
-            Current match rate: {stats.matchRate}% | Active captains: {stats.activeCaptains} |
-            Announcements: {stats.announcementCount}
+            当前匹配率：{stats.matchRate}% | 活跃船长：{stats.activeCaptains} |公告数量：
+            {stats.announcementCount}
           </p>
         </section>
       ) : null}
