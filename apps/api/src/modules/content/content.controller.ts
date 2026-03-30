@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
+import { Body, Controller, Param, Post, Req } from "@nestjs/common";
 import { ok } from "../../common/api-response";
 import { ContentService } from "./content.service";
 import { CreateContentDto } from "./dto/content.dto";
@@ -8,8 +8,9 @@ export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
   @Post("generate")
-  generate(@Body() payload: CreateContentDto) {
-    return ok(this.contentService.create(payload), "内容已生成，等待确认");
+  async generate(@Req() req: { user?: { userId: string } }, @Body() payload: CreateContentDto) {
+    const userId = req.user?.userId ? BigInt(req.user.userId) : 1n; // 使用 1n 作为 Mock 测试 ID
+    return ok(await this.contentService.create(userId, payload), "内容已生成，等待确认");
   }
 
   @Post(":id/publish")

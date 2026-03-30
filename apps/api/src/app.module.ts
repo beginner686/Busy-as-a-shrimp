@@ -10,6 +10,10 @@ import { MembershipModule } from "./modules/membership/membership.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { ComplianceModule } from "./modules/compliance/compliance.module";
 
+import { ActivityModule } from "./modules/activity/activity.module";
+import { DoppelgangerModule } from "./modules/doppelganger/doppelganger.module";
+import { TaskModule } from "./modules/task/task.module";
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -21,7 +25,10 @@ import { ComplianceModule } from "./modules/compliance/compliance.module";
     CaptainModule,
     MembershipModule,
     AdminModule,
-    ComplianceModule
+    ComplianceModule,
+    ActivityModule,
+    DoppelgangerModule,
+    TaskModule
   ]
 })
 export class AppModule {}
