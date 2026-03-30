@@ -223,7 +223,7 @@ export default function AuthPage() {
         description: "正在跳转至后台管理系统..."
       });
 
-      const url = new URL("http://localhost:3002/login");
+      const url = new URL("http://localhost:3002/");
       url.searchParams.set("token", result.token);
       url.searchParams.set("profile", JSON.stringify(result.profile));
       window.location.href = url.toString();
