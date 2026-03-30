@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
@@ -21,6 +20,7 @@ import { useUserStore } from "@/stores/user-store";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { startProgress } from "./page-progress-bar";
 import {
   MATCH_LIST_QUERY_KEY,
   fetchMatchListQueryData
@@ -99,6 +99,24 @@ export function TopNav() {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
+  function handleNavigate(href: string) {
+    if (pathname !== href) {
+      startProgress();
+    }
+    router.push(href);
+  }
+
+  function prefetchOnIntent(href: string) {
+    router.prefetch(href);
+    if (href === "/match/list" && loggedIn) {
+      void queryClient.prefetchQuery({
+        queryKey: MATCH_LIST_QUERY_KEY,
+        queryFn: fetchMatchListQueryData,
+        staleTime: 45_000
+      });
+    }
+  }
+
   function onLogout() {
     logout();
     setDrawerOpen(false);
@@ -107,18 +125,6 @@ export function TopNav() {
       description: "当前登录态已清除。"
     });
     router.replace("/");
-  }
-
-  function prefetchMatchListOnIntent() {
-    if (!loggedIn) {
-      return;
-    }
-
-    void queryClient.prefetchQuery({
-      queryKey: MATCH_LIST_QUERY_KEY,
-      queryFn: fetchMatchListQueryData,
-      staleTime: 45_000
-    });
   }
 
   return (
@@ -146,7 +152,6 @@ export function TopNav() {
                   {navItems.map((item) => (
                     <DrawerClose asChild key={item.href}>
                       <Button
-                        asChild
                         variant={isActivePath(item.href) ? "default" : "ghost"}
                         className={cn(
                           "justify-start rounded-full transition-all duration-200 ease-out",
@@ -155,19 +160,11 @@ export function TopNav() {
                             : "text-zinc-400 hover:bg-white/10 hover:text-white",
                           !isActivePath(item.href) && getNavToneClass(item.href)
                         )}
+                        onClick={() => handleNavigate(item.href)}
+                        onMouseEnter={() => prefetchOnIntent(item.href)}
                       >
-                        <Link
-                          href={item.href}
-                          onMouseEnter={
-                            item.href === "/match/list" ? prefetchMatchListOnIntent : undefined
-                          }
-                          onFocus={
-                            item.href === "/match/list" ? prefetchMatchListOnIntent : undefined
-                          }
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.label}
-                        </Link>
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
                       </Button>
                     </DrawerClose>
                   ))}
@@ -175,25 +172,23 @@ export function TopNav() {
                     <>
                       <DrawerClose asChild>
                         <Button
-                          asChild
                           className="mt-2 justify-start rounded-full bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]"
+                          onClick={() => handleNavigate("/resource/new")}
+                          onMouseEnter={() => prefetchOnIntent("/resource/new")}
                         >
-                          <Link href="/resource/new">
-                            <Plus className="h-4 w-4" />
-                            发布资源
-                          </Link>
+                          <Plus className="h-4 w-4" />
+                          发布资源
                         </Button>
                       </DrawerClose>
                       <DrawerClose asChild>
                         <Button
-                          asChild
                           variant="ghost"
                           className="justify-start rounded-full text-zinc-400 transition-all duration-200 ease-out hover:bg-white/10 hover:text-white"
+                          onClick={() => handleNavigate("/profile")}
+                          onMouseEnter={() => prefetchOnIntent("/profile")}
                         >
-                          <Link href="/profile">
-                            <UserCircle2 className="h-4 w-4" />
-                            个人资料
-                          </Link>
+                          <UserCircle2 className="h-4 w-4" />
+                          个人资料
                         </Button>
                       </DrawerClose>
                       <Button
@@ -208,13 +203,12 @@ export function TopNav() {
                   ) : (
                     <DrawerClose asChild>
                       <Button
-                        asChild
                         className="mt-2 justify-start rounded-full border border-white/10 bg-zinc-900 text-white transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-800"
+                        onClick={() => handleNavigate("/auth")}
+                        onMouseEnter={() => prefetchOnIntent("/auth")}
                       >
-                        <Link href="/auth">
-                          <LogIn className="h-4 w-4" />
-                          登录 / 注册
-                        </Link>
+                        <LogIn className="h-4 w-4" />
+                        登录 / 注册
                       </Button>
                     </DrawerClose>
                   )}
@@ -223,28 +217,34 @@ export function TopNav() {
             </Drawer>
           </div>
 
-          <Link
-            href="/"
-            className="rounded-full bg-gradient-to-b from-white to-zinc-400 bg-clip-text px-3 py-1.5 text-lg font-bold tracking-tighter text-transparent transition-all duration-200 ease-out hover:bg-white/5"
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => handleNavigate("/")}
+            onMouseEnter={() => prefetchOnIntent("/")}
+            onKeyDown={(e) => e.key === "Enter" && handleNavigate("/")}
+            className="cursor-pointer rounded-full bg-gradient-to-b from-white to-zinc-400 bg-clip-text px-3 py-1.5 text-lg font-bold tracking-tighter text-transparent transition-all duration-200 ease-out hover:bg-white/5"
           >
             虾忙
-          </Link>
+          </div>
 
           <nav className="hidden md:flex items-center gap-1" aria-label="主导航">
             {navItems.map((item) => (
-              <Link
+              <div
                 key={item.href}
-                href={item.href}
-                onMouseEnter={item.href === "/match/list" ? prefetchMatchListOnIntent : undefined}
-                onFocus={item.href === "/match/list" ? prefetchMatchListOnIntent : undefined}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleNavigate(item.href)}
+                onMouseEnter={() => prefetchOnIntent(item.href)}
+                onKeyDown={(e) => e.key === "Enter" && handleNavigate(item.href)}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium text-zinc-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-white",
+                  "cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium text-zinc-400 transition-all duration-200 ease-out hover:bg-white/5 hover:text-white",
                   !isActivePath(item.href) && getNavToneClass(item.href),
                   isActivePath(item.href) && "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
                 )}
               >
                 {item.label}
-              </Link>
+              </div>
             ))}
           </nav>
         </div>
@@ -253,13 +253,12 @@ export function TopNav() {
           {loggedIn ? (
             <>
               <Button
-                asChild
                 className="hidden rounded-full bg-cyan-500 font-semibold text-black shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] sm:inline-flex"
+                onClick={() => handleNavigate("/resource/new")}
+                onMouseEnter={() => prefetchOnIntent("/resource/new")}
               >
-                <Link href="/resource/new">
-                  <Plus className="h-4 w-4" />
-                  发布资源
-                </Link>
+                <Plus className="h-4 w-4" />
+                发布资源
               </Button>
 
               <DropdownMenu>
@@ -296,11 +295,13 @@ export function TopNav() {
                     <p className="text-xs font-normal text-zinc-400">{getRoleLabel(role)}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
-                    <Link href="/profile" className="flex items-center gap-2">
-                      <UserCircle2 className="h-4 w-4" />
-                      个人资料
-                    </Link>
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 focus:bg-white/10 focus:text-white"
+                    onClick={() => handleNavigate("/profile")}
+                    onMouseEnter={() => prefetchOnIntent("/profile")}
+                  >
+                    <UserCircle2 className="h-4 w-4" />
+                    个人资料
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -315,13 +316,12 @@ export function TopNav() {
             </>
           ) : (
             <Button
-              asChild
               className="rounded-full border border-white/10 bg-zinc-900 text-white transition-all duration-200 ease-out hover:-translate-y-[1px] hover:bg-zinc-800"
+              onClick={() => handleNavigate("/auth")}
+              onMouseEnter={() => prefetchOnIntent("/auth")}
             >
-              <Link href="/auth">
-                <LogIn className="h-4 w-4" />
-                登录 / 注册
-              </Link>
+              <LogIn className="h-4 w-4" />
+              登录 / 注册
             </Button>
           )}
         </div>
