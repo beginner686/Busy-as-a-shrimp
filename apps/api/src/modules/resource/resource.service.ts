@@ -1,14 +1,18 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma.service";
 import { UploadResourceDto, UpdateResourceDto, ResourceStatus } from "./dto/resource.dto";
+import { ComplianceService } from "../compliance/compliance.service";
 
 @Injectable()
 export class ResourceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly compliance: ComplianceService
+  ) {}
 
   async upload(userId: bigint, payload: UploadResourceDto) {
-    // 1. 风险扫描 (Mock)
-    await this.scanRisk(payload.tags);
+    // 1. 强制合规审计
+    await this.compliance.checkTags(payload.tags);
 
     // 2. 创建资源并设置为待审核状态
     return this.prisma.resource.create({
@@ -44,7 +48,7 @@ export class ResourceService {
     }
 
     if (payload.tags) {
-      await this.scanRisk(payload.tags);
+      await this.compliance.checkTags(payload.tags);
     }
 
     return this.prisma.resource.update({
@@ -88,15 +92,5 @@ export class ResourceService {
       time: ["长期", "短期", "周末"],
       scale: ["个人", "工作室", "MCN机构"]
     };
-  }
-
-  private async scanRisk(tags: string[]) {
-    // 这里是 Mock 风险扫描，实际项目中需要对接专门的内容合规服务
-    const sensitiveWords = ["违规", "禁止", "色情"];
-    for (const tag of tags) {
-      if (sensitiveWords.some((word) => tag.includes(word))) {
-        throw new BadRequestException(`包含违规词汇: ${tag}`);
-      }
-    }
   }
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,8 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 处理来自用户端的 token 移交跳转，避免闪现登录表单
+  const [handingOver, setHandingOver] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -35,13 +37,17 @@ export default function AdminLoginPage() {
       const profileStr = params.get("profile");
 
       if (token && profileStr) {
+        // 立即标记移交中，隐藏登录表单
+        setHandingOver(true);
         try {
           const profile = JSON.parse(profileStr) as AdminSessionProfile;
           saveAdminSession(token, profile);
+          // 使用 replace 避免留下历史记录（含 token 的 URL）
           router.replace("/");
           return;
         } catch (handoverError) {
           console.error("Failed to restore admin session", handoverError);
+          setHandingOver(false);
         }
       }
     }
@@ -71,26 +77,39 @@ export default function AdminLoginPage() {
 
       const body = (await response.json()) as ApiResponse<AdminLoginResult>;
       if (!body.success) {
-        throw new Error(body.message || "Login failed");
+        throw new Error(body.message || "登录失败");
       }
 
       saveAdminSession(body.data.token, body.data.profile);
       router.replace("/");
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Login failed");
+      setError(loginError instanceof Error ? loginError.message : "登录失败，请重试");
     } finally {
       setLoading(false);
     }
   }
 
+  // token 移交跳转中，显示过渡屏避免闪现表单
+  if (handingOver) {
+    return (
+      <main className={styles.page}>
+        <section className={styles.card}>
+          <p style={{ color: "#8de6ff", textAlign: "center", fontSize: "15px" }}>
+            正在跳转到管理后台...
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <h1>Busy as a Shrimp Admin</h1>
+        <h1>虾忙后台管理平台</h1>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label>
-            Username
+            用户名
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
@@ -99,7 +118,7 @@ export default function AdminLoginPage() {
           </label>
 
           <label>
-            Password
+            密码
             <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
@@ -111,7 +130,7 @@ export default function AdminLoginPage() {
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPassword((current) => !current)}
-                title={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "隐藏密码" : "显示密码"}
               >
                 {showPassword ? (
                   <svg
@@ -144,7 +163,7 @@ export default function AdminLoginPage() {
           {error ? <p className={styles.error}>{error}</p> : null}
 
           <button type="submit" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "登录中..." : "登录"}
           </button>
         </form>
       </section>
