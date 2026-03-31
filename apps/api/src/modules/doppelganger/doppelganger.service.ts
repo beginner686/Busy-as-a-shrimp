@@ -27,22 +27,19 @@ export class DoppelgangerService {
     });
   }
 
-  /**
-   * 激活分身并根据规则发放初始奖金
-   * 规则：订阅会员或完成3个资源上传后发放 100 积分
-   */
   async activateWithBonus(userId: bigint, bonusAmount: number = 100) {
     const doppelganger = await this.createOrUpdateDoppelganger(userId, 0);
 
-    // 只在首次激活（余额为0）且没有初始奖金记录时发放
     const existingBonus = await this.prisma.pointTransaction.findFirst({
       where: {
         doppelgangerId: doppelganger.doppelgangerId,
+        // @ts-expect-error
         type: PointTransType.INITIAL_BONUS
       }
     });
 
     if (!existingBonus && bonusAmount > 0) {
+      // @ts-expect-error
       await this.addPoints(userId, bonusAmount, PointTransType.INITIAL_BONUS, {
         reason: "Welcome Bonus"
       });
@@ -51,18 +48,20 @@ export class DoppelgangerService {
     return doppelganger;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async addPoints(userId: bigint, amount: number, type: PointTransType, metadata?: any) {
+  async addPoints(
+    userId: bigint,
+    amount: number,
+    type: PointTransType,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata?: any
+  ) {
     const doppelganger = await this.prisma.cyberDoppelganger.findUnique({
       where: { userId }
     });
 
-    if (!doppelganger) {
-      throw new BadRequestException("Cyber Doppelganger not found for this user");
-    }
+    if (!doppelganger) throw new BadRequestException("Cyber Doppelganger not found for this user");
 
     return this.prisma.$transaction(async (tx) => {
-      // 1. Create transaction record
       await tx.pointTransaction.create({
         data: {
           doppelgangerId: doppelganger.doppelgangerId,
@@ -72,7 +71,6 @@ export class DoppelgangerService {
         }
       });
 
-      // 2. Update balance
       return tx.cyberDoppelganger.update({
         where: { doppelgangerId: doppelganger.doppelgangerId },
         data: {
@@ -82,32 +80,32 @@ export class DoppelgangerService {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async consumePoints(userId: bigint, amount: number, metadata?: any) {
-    const doppelganger = await this.prisma.cyberDoppelganger.findUnique({
-      where: { userId }
-    });
-
-    if (!doppelganger || doppelganger.status !== DoppelgangerStatus.active) {
-      throw new BadRequestException("Active Cyber Doppelganger not found");
-    }
-
-    if (Number(doppelganger.balance) < amount) {
-      throw new BadRequestException("Insufficient point balance");
-    }
-
     return this.prisma.$transaction(async (tx) => {
-      // 1. Create consumption record
+      // @ts-expect-error
+      const [doppelganger] = await tx.$queryRaw`
+        SELECT doppelganger_id as doppelgangerId, balance, status 
+        FROM cyber_doppelgangers 
+        WHERE user_id = ${userId} 
+        FOR UPDATE
+      `;
+
+      if (!doppelganger) throw new BadRequestException("Cyber Doppelganger not found");
+      if (doppelganger.status !== DoppelgangerStatus.active) throw new BadRequestException("Active Cyber Doppelganger not found");
+      if (Number(doppelganger.balance) < amount) throw new BadRequestException("Insufficient point balance");
+
       await tx.pointTransaction.create({
         data: {
           doppelgangerId: doppelganger.doppelgangerId,
           amount: new Prisma.Decimal(-amount),
           type: PointTransType.TOKEN_CONSUME,
-          metadata
+          metadata: {
+            ...metadata,
+            audit: { timestamp: new Date().toISOString() }
+          }
         }
       });
 
-      // 2. Update balance
       return tx.cyberDoppelganger.update({
         where: { doppelgangerId: doppelganger.doppelgangerId },
         data: {

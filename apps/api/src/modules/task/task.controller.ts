@@ -1,13 +1,24 @@
-import { Controller, Get, Post, Param, Body, Req } from "@nestjs/common";
+import { Controller, Get, Post, Param, Body, Req, UseGuards } from "@nestjs/common";
 import { TaskService } from "./task.service";
+import { JwtAuthGuard } from "../user/guards/jwt-auth.guard";
+import { MembershipAccessGuard } from "../membership/guards/membership-access.guard";
+import { RequireMember } from "../membership/decorators/require-member.decorator";
 
 @Controller("tasks")
+@UseGuards(JwtAuthGuard, MembershipAccessGuard)
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
-  @Get()
+   @Get()
   async list() {
     return this.taskService.listTasks();
+  }
+
+  @Get(":id")
+  @RequireMember()
+  async get(@Param("id") id: string, @Req() req: { user: { userId: string } }) {
+    const userId = BigInt(req.user.userId);
+    return this.taskService.getTask(userId, BigInt(id));
   }
 
   @Post(":id/apply")
