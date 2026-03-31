@@ -216,6 +216,17 @@ model PointTransaction {
   @@map("point_transactions")
 }
 
+model SignInRecord {
+  recordId       BigInt   @id @default(autoincrement()) @map("record_id")
+  userId         BigInt   @map("user_id")
+  lastSignInDate DateTime @map("last_sign_in_date")
+  streakDays     Int      @default(1) @map("streak_days")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, lastSignInDate])
+  @@map("sign_in_records")
+}
+
 
 model BountyTask {
   taskId      BigInt           @id @default(autoincrement()) @map("task_id")
@@ -255,6 +266,9 @@ enum PointTransType {
   TASK_REWARD
   TOKEN_CONSUME
   SYSTEM_ADJUST
+  INITIAL_BONUS
+  DAILY_SIGN_IN
+  CONTRIBUTION_REWARD
 }
 
 enum TaskStatus {

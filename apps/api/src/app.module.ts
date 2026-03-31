@@ -13,6 +13,7 @@ import { ComplianceModule } from "./modules/compliance/compliance.module";
 import { ActivityModule } from "./modules/activity/activity.module";
 import { DoppelgangerModule } from "./modules/doppelganger/doppelganger.module";
 import { TaskModule } from "./modules/task/task.module";
+import { SignInModule } from "./modules/signin/signin.module";
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { TaskModule } from "./modules/task/task.module";
     ComplianceModule,
     ActivityModule,
     DoppelgangerModule,
-    TaskModule
+    TaskModule,
+    SignInModule
   ]
 })
 export class AppModule {}

@@ -2,13 +2,49 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma.service";
 import { UploadResourceDto, UpdateResourceDto, ResourceStatus } from "./dto/resource.dto";
 import { ComplianceService } from "../compliance/compliance.service";
+import { DoppelgangerService } from "../doppelganger/doppelganger.service";
 
 @Injectable()
 export class ResourceService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly compliance: ComplianceService
+    private readonly compliance: ComplianceService,
+    private readonly doppelgangerService: DoppelgangerService
   ) {}
+
+  /**
+   * 管理员审核资源
+   * 如果这是该用户第 3 个被审核通过的资源，则激活其赛博分身并奖励 100 积分
+   */
+  async approveResource(resourceId: bigint) {
+    const resource = await this.prisma.resource.findUnique({
+      where: { resourceId }
+    });
+
+    if (!resource) {
+      throw new BadRequestException("资源不存在");
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. 更新资源状态
+      const updated = await tx.resource.update({
+        where: { resourceId },
+        data: { status: ResourceStatus.ACTIVE, lastUpdate: new Date() }
+      });
+
+      // 2. 统计用户已通过的资源总数
+      const activeCount = await tx.resource.count({
+        where: { userId: resource.userId, status: ResourceStatus.ACTIVE }
+      });
+
+      // 3. 触发奖励逻辑（刚好达到 3 个）
+      if (activeCount === 3) {
+        await this.doppelgangerService.activateWithBonus(resource.userId, 100);
+      }
+
+      return updated;
+    });
+  }
 
   async upload(userId: bigint, payload: UploadResourceDto) {
     // 1. 强制合规审计

@@ -7,8 +7,11 @@ import { UserService } from "./user.service";
 import { PrismaService } from "../../common/prisma.service";
 import { JwtStrategy } from "./jwt.strategy";
 
+import { DoppelgangerModule } from "../doppelganger/doppelganger.module";
+
 @Module({
   imports: [
+    DoppelgangerModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -11,9 +11,14 @@ export class ContentService {
   async create(userId: bigint, payload: CreateContentDto) {
     // 模拟 AI 生成过程并获取 Token 消耗
     const mockTokens = 1500; // 假设消耗了 1500 tokens
-    const pointCost = mockTokens / 1000; // 假设 1000 token = 1 元 = 1 积分
+    const cnyCost = mockTokens / 1000; // 假设 1000 token = 1 元
 
-    this.logger.log(`User ${userId} consuming ${pointCost} points for ${mockTokens} tokens`);
+    // 汇率规则：1 积分 = 0.5 元 => 1 元 = 2 积分
+    const pointCost = cnyCost * 2;
+
+    this.logger.log(
+      `User ${userId} consuming ${pointCost} points for ${mockTokens} tokens (Cost: ${cnyCost} CNY)`
+    );
 
     // 扣除积分
     await this.doppelgangerService.consumePoints(userId, pointCost, {

@@ -34,6 +34,11 @@ export class RegisterDto {
 
   @IsString()
   captchaId!: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(6, 12)
+  inviteCode?: string;
 }
 
 export class LoginDto {
@@ -64,6 +69,11 @@ export class LoginDto {
   @IsString()
   @IsOptional()
   wechatCode?: string; // 微信授权码
+
+  @IsString()
+  @IsOptional()
+  @Length(6, 12)
+  inviteCode?: string;
 }
 
 export class VerifyIdentityDto {

@@ -27,6 +27,30 @@ export class DoppelgangerService {
     });
   }
 
+  /**
+   * 激活分身并根据规则发放初始奖金
+   * 规则：订阅会员或完成3个资源上传后发放 100 积分
+   */
+  async activateWithBonus(userId: bigint, bonusAmount: number = 100) {
+    const doppelganger = await this.createOrUpdateDoppelganger(userId, 0);
+
+    // 只在首次激活（余额为0）且没有初始奖金记录时发放
+    const existingBonus = await this.prisma.pointTransaction.findFirst({
+      where: {
+        doppelgangerId: doppelganger.doppelgangerId,
+        type: PointTransType.INITIAL_BONUS
+      }
+    });
+
+    if (!existingBonus && bonusAmount > 0) {
+      await this.addPoints(userId, bonusAmount, PointTransType.INITIAL_BONUS, {
+        reason: "Welcome Bonus"
+      });
+    }
+
+    return doppelganger;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async addPoints(userId: bigint, amount: number, type: PointTransType, metadata?: any) {
     const doppelganger = await this.prisma.cyberDoppelganger.findUnique({

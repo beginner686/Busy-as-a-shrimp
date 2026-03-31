@@ -1,4 +1,4 @@
-﻿import { Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Prisma, ResourceStatus } from "@prisma/client";
 import { PrismaService } from "../../common/prisma.service";
 import { AdminUserStatus, CaptainLevel, QueryResourcesDto, QueryUsersDto } from "./dto/admin.dto";
@@ -68,13 +68,18 @@ function normalizePriceRange(
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
+import { ResourceService } from "../resource/resource.service";
+
 @Injectable()
 export class AdminService {
   private get extendedPrisma() {
     return this.prisma as unknown as ExtendedPrisma;
   }
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resourceService: ResourceService
+  ) {}
 
   async users(filters: QueryUsersDto) {
     const { status, role } = filters;
@@ -145,11 +150,19 @@ export class AdminService {
   }
 
   async reviewResource(id: number, decision: "approve" | "reject", reason?: string) {
-    const status = decision === "approve" ? ResourceStatus.active : ResourceStatus.rejected;
+    if (decision === "approve") {
+      const updated = await this.resourceService.approveResource(BigInt(id));
+      return {
+        resourceId: Number(updated.resourceId),
+        status: updated.status,
+        note: "Approved via ResourceService logic"
+      };
+    }
+
     const updated = await this.prisma.resource.update({
       where: { resourceId: BigInt(id) },
       data: {
-        status,
+        status: ResourceStatus.rejected,
         verifiedAt: new Date(),
         lastUpdate: new Date()
       }

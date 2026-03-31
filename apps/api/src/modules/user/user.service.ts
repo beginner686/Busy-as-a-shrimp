@@ -13,6 +13,8 @@ import {
   VerifyIdentityDto
 } from "./dto/user.dto";
 
+import { DoppelgangerService } from "../doppelganger/doppelganger.service";
+
 @Injectable()
 export class UserService {
   private codes = new Map<string, string>();
@@ -20,7 +22,8 @@ export class UserService {
 
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private doppelgangerService: DoppelgangerService
   ) {}
 
   /**
@@ -154,6 +157,11 @@ export class UserService {
       }
     });
 
+    // 处理拉新解锁
+    if (payload.inviteCode) {
+      await this.handleInvitation(user.userId, payload.inviteCode);
+    }
+
     return {
       user,
       token: this.generateToken(user)
@@ -191,6 +199,10 @@ export class UserService {
           status: "active"
         }
       });
+      // 登录即注册场景：处理拉新
+      if (payload.inviteCode) {
+        await this.handleInvitation(user.userId, payload.inviteCode);
+      }
     }
 
     if (user.status !== "active") {
@@ -233,5 +245,33 @@ export class UserService {
       where: { userId },
       data: { role: payload.role }
     });
+  }
+
+  private async handleInvitation(inviteeId: bigint, inviteCode: string) {
+    // 1. 解析邀请码
+    // 实际生产中建议在 User 表加一个 invite_code 字段
+    // 当前版本我们直接根据 ID 模拟查找：假设邀请码就是 ID 的 36 进制
+    let inviterId: bigint | null = null;
+    try {
+      inviterId = BigInt(parseInt(inviteCode, 36));
+    } catch {
+      return; // 非法邀请码
+    }
+
+    const inviterUser = await this.prisma.user.findUnique({ where: { userId: inviterId } });
+    if (!inviterUser || inviterId === inviteeId) return;
+
+    // 2. 记录邀请关系
+    await this.prisma.inviteRecord.create({
+      data: {
+        inviterId: inviterId,
+        inviteeId: inviteeId,
+        inviteCode: inviteCode,
+        isValid: true
+      }
+    });
+
+    // 3. 激活邀请人的分身 (根据需求：邀1人即可解锁分身，不带初始100积分)
+    await this.doppelgangerService.activateWithBonus(inviterId, 0);
   }
 }
