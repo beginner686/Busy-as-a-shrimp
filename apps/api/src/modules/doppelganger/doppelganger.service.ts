@@ -33,13 +33,11 @@ export class DoppelgangerService {
     const existingBonus = await this.prisma.pointTransaction.findFirst({
       where: {
         doppelgangerId: doppelganger.doppelgangerId,
-        // @ts-expect-error
         type: PointTransType.INITIAL_BONUS
       }
     });
 
     if (!existingBonus && bonusAmount > 0) {
-      // @ts-expect-error
       await this.addPoints(userId, bonusAmount, PointTransType.INITIAL_BONUS, {
         reason: "Welcome Bonus"
       });
@@ -80,9 +78,10 @@ export class DoppelgangerService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async consumePoints(userId: bigint, amount: number, metadata?: any) {
     return this.prisma.$transaction(async (tx) => {
-      // @ts-expect-error
+      // @ts-expect-error prisma queryRaw returns generic promise that cannot be safely destructured
       const [doppelganger] = await tx.$queryRaw`
         SELECT doppelganger_id as doppelgangerId, balance, status 
         FROM cyber_doppelgangers 
@@ -91,8 +90,10 @@ export class DoppelgangerService {
       `;
 
       if (!doppelganger) throw new BadRequestException("Cyber Doppelganger not found");
-      if (doppelganger.status !== DoppelgangerStatus.active) throw new BadRequestException("Active Cyber Doppelganger not found");
-      if (Number(doppelganger.balance) < amount) throw new BadRequestException("Insufficient point balance");
+      if (doppelganger.status !== DoppelgangerStatus.active)
+        throw new BadRequestException("Active Cyber Doppelganger not found");
+      if (Number(doppelganger.balance) < amount)
+        throw new BadRequestException("Insufficient point balance");
 
       await tx.pointTransaction.create({
         data: {

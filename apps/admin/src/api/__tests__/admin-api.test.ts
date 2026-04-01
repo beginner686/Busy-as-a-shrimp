@@ -45,4 +45,34 @@ describe("createAdminApi", () => {
       body: { decision: "approve" }
     });
   });
+
+  it("loads dict types and cascades dict data query", async () => {
+    const client = {
+      get: vi
+        .fn()
+        .mockResolvedValueOnce([
+          { dictId: 1, dictName: "任务状态", dictType: "task_status", status: "normal" }
+        ])
+        .mockResolvedValueOnce([
+          {
+            dictCode: "PENDING",
+            dictLabel: "待处理",
+            dictValue: "pending",
+            dictSort: 1,
+            status: "normal"
+          }
+        ]),
+      put: vi.fn(),
+      post: vi.fn()
+    };
+    const api = createAdminApi(client);
+
+    const types = await api.dictTypes();
+    const data = await api.dictData("task_status");
+
+    expect(types).toHaveLength(1);
+    expect(data).toHaveLength(1);
+    expect(client.get).toHaveBeenNthCalledWith(1, "/admin/dict/types");
+    expect(client.get).toHaveBeenNthCalledWith(2, "/admin/dict/data?dictType=task_status");
+  });
 });

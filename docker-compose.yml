@@ -3,7 +3,7 @@ services:
     image: node:20
     container_name: airp-api
     working_dir: /workspace
-    command: sh -c "corepack enable && COREPACK_ENABLE_DOWNLOAD_PROMPT=0 CI=true pnpm install && pnpm --filter @airp/database generate && pnpm --filter @airp/database db:push && pnpm --filter @airp/api build && pnpm --filter @airp/api start"
+    command: sh -c "corepack enable && COREPACK_ENABLE_DOWNLOAD_PROMPT=0 CI=true pnpm install && pnpm --filter @airp/database generate && pnpm --filter @airp/api build && pnpm --filter @airp/api start"
     volumes:
       - ./:/workspace
       - api_node_modules:/workspace/node_modules

@@ -30,7 +30,7 @@ export class UserService {
     const bytes = crypto.randomBytes(8);
     let code = "SHR-";
     for (let i = 0; i < 6; i++) {
-       code += chars[bytes[i] % chars.length];
+      code += chars[bytes[i] % chars.length];
     }
     return code;
   }
@@ -51,7 +51,8 @@ export class UserService {
       this.captchas.delete(captchaId);
       throw new BadRequestException("图形验证码已过期");
     }
-    if (captcha.code.toUpperCase() !== captchaValue.toUpperCase()) throw new BadRequestException("图形验证码错误");
+    if (captcha.code.toUpperCase() !== captchaValue.toUpperCase())
+      throw new BadRequestException("图形验证码错误");
     this.captchas.delete(captchaId);
   }
 
@@ -94,6 +95,7 @@ export class UserService {
         status: "active",
         lastIp: ip,
         inviteCode: this.generateSecureInviteCode()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
     });
 
@@ -117,6 +119,7 @@ export class UserService {
           status: "active",
           lastIp: ip,
           inviteCode: this.generateSecureInviteCode()
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
       });
       if (payload.inviteCode) await this.handleInvitation(user.userId, payload.inviteCode);
@@ -125,7 +128,7 @@ export class UserService {
   }
 
   async verifyIdentity(payload: VerifyIdentityDto) {
-    if (!payload.idCard || !payload.realName) throw new BadRequestException("信息不完整");
+    if (!payload.idNumber || !payload.name) throw new BadRequestException("信息不完整");
     return { success: true };
   }
 
@@ -144,7 +147,6 @@ export class UserService {
   }
 
   private async handleInvitation(inviteeId: bigint, inviteCode: string) {
-    // @ts-expect-error
     const inviterUser = await this.prisma.user.findUnique({ where: { inviteCode } });
     if (!inviterUser || inviterUser.userId === inviteeId) {
       try {
@@ -154,7 +156,9 @@ export class UserService {
           await this.createInviteRecord(oldInviter.userId, inviteeId, inviteCode);
           await this.doppelgangerService.activateWithBonus(oldInviter.userId, 0);
         }
-      } catch { return; }
+      } catch {
+        return;
+      }
       return;
     }
     await this.createInviteRecord(inviterUser.userId, inviteeId, inviteCode);

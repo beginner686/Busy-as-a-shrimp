@@ -86,6 +86,22 @@ export interface AdminMatchRecord {
   confirmedAt?: string;
 }
 
+// ── 数据字典 ──────────────────────────────────────────
+export interface DictType {
+  dictId: number;
+  dictName: string;
+  dictType: string;
+  status: "normal" | "disabled";
+}
+
+export interface DictData {
+  dictCode: string;
+  dictLabel: string;
+  dictValue: string;
+  dictSort: number;
+  status: "normal" | "disabled";
+}
+
 // ── API 工厂 ──────────────────────────────────────────
 export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "post">) {
   return {
@@ -141,6 +157,14 @@ export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "pos
     // 匹配记录
     matches(): Promise<AdminMatchRecord[]> {
       return client.get<AdminMatchRecord[]>("/admin/matches");
+    },
+
+    // 数据字典
+    dictTypes(): Promise<DictType[]> {
+      return client.get<DictType[]>("/admin/dict/types");
+    },
+    dictData(dictType: string): Promise<DictData[]> {
+      return client.get<DictData[]>(`/admin/dict/data?dictType=${encodeURIComponent(dictType)}`);
     }
   };
 }

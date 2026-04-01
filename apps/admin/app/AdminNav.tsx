@@ -40,6 +40,7 @@ export function AdminNav() {
     { path: "/captain/ranking", label: "船长排行" },
     { path: "/activity", label: "拉新活动" },
     { path: "/tasks", label: "任务管理" },
+    { path: "/dict", label: "数据字典" },
     { path: "/announcements", label: "平台公告" }
   ];
 
