@@ -1,10 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getResourceApi } from "../../../src/api";
 import { getErrorMessage } from "../../../src/utils/error-message";
+
+const CITIES = ["北京", "上海", "广州", "深圳", "杭州", "成都"];
+const SKILLS = ["短视频", "直播", "账号代运营", "文案策划", "活动执行", "企业自播", "IP孵化"];
+const WISHES = ["寻找合伙人", "资源互换", "异业合作", "流量共享", "项目外包", "招募主播"];
+const NEEDS = ["长期", "短期", "周末", "兼职", "单次结", "远程"];
 
 interface ResourceItem {
   resourceId: number;
@@ -65,6 +72,18 @@ export default function ResourceListPage() {
     select: normalizeTextList
   });
 
+  const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeSkill, setActiveSkill] = useState<string | null>(null);
+  const [activeWish, setActiveWish] = useState<string | null>(null);
+  const [activeNeed, setActiveNeed] = useState<string | null>(null);
+
+  const handleReset = () => {
+    setActiveCity(null);
+    setActiveSkill(null);
+    setActiveWish(null);
+    setActiveNeed(null);
+  };
+
   const loading = resourceListQuery.isPending || resourceTagsQuery.isPending;
   const error = resourceListQuery.error
     ? getErrorMessage(resourceListQuery.error)
@@ -72,7 +91,7 @@ export default function ResourceListPage() {
       ? getErrorMessage(resourceTagsQuery.error)
       : "";
   const items = resourceListQuery.data ?? [];
-  const tags = resourceTagsQuery.data ?? [];
+  const _tags = resourceTagsQuery.data ?? [];
 
   return (
     <motion.main
@@ -86,33 +105,130 @@ export default function ResourceListPage() {
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-violet-500/10 blur-[120px]" />
       </div>
 
-      <header className="rounded-3xl border border-white/10 bg-zinc-900/50 p-6 shadow-[0_12px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-400/70">
-              Resource Matrix
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-50">资源列表</h1>
+      <header className="bg-zinc-950/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 flex flex-col gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="font-mono text-lg font-bold uppercase tracking-[0.1em] text-zinc-100">
+              RESOURCE MATRIX
+            </h1>
+            <span className="text-zinc-500 text-sm font-medium tracking-wide">/ 资源矩阵</span>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-right">
-            <p className="text-xs text-zinc-500">资源总数</p>
-            <p className="mt-1 font-mono text-2xl font-semibold text-cyan-300">{items.length}</p>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="group flex items-center gap-2 rounded-xl border border-zinc-700/50 bg-zinc-900/50 px-4 py-2 text-xs font-semibold text-zinc-400 transition-all hover:border-cyan-500/50 hover:bg-cyan-500/10 hover:text-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            >
+              <RotateCcw className="h-4 w-4 transition-transform duration-500 group-hover:-rotate-180" />
+              <span className="uppercase tracking-widest">Reset</span>
+            </button>
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-4 py-2">
+              <span className="text-xs text-zinc-500">资源总数</span>
+              <span className="font-mono text-xl font-bold text-cyan-300">{items.length}</span>
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl border border-white/5 bg-black/30 p-3">
-          <p className="mb-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
-            当前筛选标签
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {(tags.length ? tags : ["-"]).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-md border border-white/10 bg-zinc-900/80 px-2.5 py-1 font-mono text-xs text-cyan-300/80"
-              >
-                {tag}
-              </span>
-            ))}
+        {/* Dimension Rows */}
+        <div className="space-y-4">
+          {/* 城市节点 */}
+          <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-6">
+            <span className="w-20 text-xs font-bold text-zinc-500 tracking-widest mt-2 shrink-0">
+              城市节点
+            </span>
+            <div className="flex flex-wrap gap-2 md:gap-3 flex-1">
+              {CITIES.map((city) => {
+                const isActive = activeCity === city;
+                return (
+                  <button
+                    key={city}
+                    onClick={() => setActiveCity(isActive ? null : city)}
+                    className={`cursor-pointer transition-all hover:-translate-y-0.5 hover:border-zinc-500 rounded-lg border px-4 py-1.5 text-xs font-medium ${
+                      isActive
+                        ? "bg-white/10 border-white/30 text-white"
+                        : "bg-zinc-900/50 border-zinc-800 text-zinc-400"
+                    }`}
+                  >
+                    {city}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 核心技能 */}
+          <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-6">
+            <span className="w-20 text-xs font-bold text-zinc-500 tracking-widest mt-2 shrink-0">
+              核心技能
+            </span>
+            <div className="flex flex-wrap gap-2 md:gap-3 flex-1">
+              {SKILLS.map((skill) => {
+                const isActive = activeSkill === skill;
+                return (
+                  <button
+                    key={skill}
+                    onClick={() => setActiveSkill(isActive ? null : skill)}
+                    className={`cursor-pointer transition-all hover:-translate-y-0.5 hover:border-zinc-500 rounded-lg border px-4 py-1.5 text-xs font-medium ${
+                      isActive
+                        ? "bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                        : "bg-zinc-900/50 border-zinc-800 text-zinc-400"
+                    }`}
+                  >
+                    {skill}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 目标心愿 */}
+          <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-6">
+            <span className="w-20 text-xs font-bold text-zinc-500 tracking-widest mt-2 shrink-0">
+              目标心愿
+            </span>
+            <div className="flex flex-wrap gap-2 md:gap-3 flex-1">
+              {WISHES.map((wish) => {
+                const isActive = activeWish === wish;
+                return (
+                  <button
+                    key={wish}
+                    onClick={() => setActiveWish(isActive ? null : wish)}
+                    className={`cursor-pointer transition-all hover:-translate-y-0.5 hover:border-zinc-500 rounded-lg border px-4 py-1.5 text-xs font-medium ${
+                      isActive
+                        ? "bg-purple-500/10 border-purple-500/50 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+                        : "bg-zinc-900/50 border-zinc-800 text-zinc-400"
+                    }`}
+                  >
+                    {wish}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 业务需求 */}
+          <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-6">
+            <span className="w-20 text-xs font-bold text-zinc-500 tracking-widest mt-2 shrink-0">
+              业务需求
+            </span>
+            <div className="flex flex-wrap gap-2 md:gap-3 flex-1">
+              {NEEDS.map((need) => {
+                const isActive = activeNeed === need;
+                return (
+                  <button
+                    key={need}
+                    onClick={() => setActiveNeed(isActive ? null : need)}
+                    className={`cursor-pointer transition-all hover:-translate-y-0.5 hover:border-zinc-500 rounded-lg border px-4 py-1.5 text-xs font-medium ${
+                      isActive
+                        ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                        : "bg-zinc-900/50 border-zinc-800 text-zinc-400"
+                    }`}
+                  >
+                    {need}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </header>

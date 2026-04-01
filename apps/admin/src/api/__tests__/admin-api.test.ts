@@ -13,7 +13,8 @@ describe("createAdminApi", () => {
         matchRate: 50,
         announcementCount: 2
       }),
-      put: vi.fn()
+      put: vi.fn(),
+      post: vi.fn()
     };
     const api = createAdminApi(client);
 
@@ -29,7 +30,8 @@ describe("createAdminApi", () => {
         .fn()
         .mockResolvedValueOnce([{ userId: 10001 }])
         .mockResolvedValueOnce([{ resourceId: 20001, status: "pending", tags: [] }]),
-      put: vi.fn().mockResolvedValue({ resourceId: 20001, status: "active" })
+      put: vi.fn().mockResolvedValue({ resourceId: 20001, status: "active" }),
+      post: vi.fn()
     };
     const api = createAdminApi(client);
 

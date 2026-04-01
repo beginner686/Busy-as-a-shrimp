@@ -1,56 +1,64 @@
-﻿version: "3.9"
-
 services:
   api:
-    image: node:20-alpine
+    image: node:20
     container_name: airp-api
     working_dir: /workspace
-    command: sh -c "corepack enable && pnpm install && pnpm --filter @airp/api dev"
+    command: sh -c "corepack enable && COREPACK_ENABLE_DOWNLOAD_PROMPT=0 CI=true pnpm install && pnpm --filter @airp/database generate && pnpm --filter @airp/database db:push && pnpm --filter @airp/api build && pnpm --filter @airp/api start"
     volumes:
       - ./:/workspace
+      - api_node_modules:/workspace/node_modules
     env_file:
       - .env
+    environment:
+      MYSQL_HOST: mysql
+      DATABASE_URL: mysql://root:123456@mysql:3306/busy_as_a_shrimp
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      OPENCLAW_BASE_URL: http://ai-engine:8088
+      API_PORT: 8081
     ports:
       - "8081:8081"
     depends_on:
-      - mysql
-      - redis
-      - rabbitmq
-      - elasticsearch
-    profiles:
-      - app
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+    restart: unless-stopped
 
   web:
     image: node:20-alpine
     container_name: airp-web
     working_dir: /workspace
-    command: sh -c "corepack enable && pnpm install && pnpm --filter @airp/web dev"
+    command: sh -c "corepack enable && COREPACK_ENABLE_DOWNLOAD_PROMPT=0 CI=true pnpm install && pnpm --filter @airp/web dev"
     volumes:
       - ./:/workspace
+      - web_node_modules:/workspace/node_modules
     env_file:
       - .env
     ports:
       - "3000:3000"
     depends_on:
       - api
-    profiles:
-      - app
 
   admin:
     image: node:20-alpine
     container_name: airp-admin
     working_dir: /workspace
-    command: sh -c "corepack enable && pnpm install && pnpm --filter @airp/admin dev"
+    command: sh -c "corepack enable && COREPACK_ENABLE_DOWNLOAD_PROMPT=0 CI=true pnpm install && pnpm --filter @airp/admin dev"
     volumes:
       - ./:/workspace
+      - admin_node_modules:/workspace/node_modules
     env_file:
       - .env
     ports:
       - "3002:3002"
     depends_on:
       - api
-    profiles:
-      - app
 
   ai-engine:
     image: python:3.11-slim
@@ -73,10 +81,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: busy_as_a_shrimp
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
 
   redis:
     image: redis:7
@@ -112,3 +124,6 @@ services:
 volumes:
   mysql_data:
   es_data:
+  api_node_modules:
+  web_node_modules:
+  admin_node_modules:

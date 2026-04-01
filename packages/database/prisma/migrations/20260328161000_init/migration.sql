@@ -1,4 +1,4 @@
-﻿-- CreateTable
+-- CreateTable
 CREATE TABLE `users` (
     `user_id` BIGINT NOT NULL AUTO_INCREMENT,
     `phone_hash` VARCHAR(64) NOT NULL,
