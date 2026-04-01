@@ -19,6 +19,10 @@ model User {
   captainLevel CaptainLevel @default(normal) @map("captain_level")
   maskedPhone  String?      @map("masked_phone") @db.VarChar(20)
   createdAt    DateTime     @default(now()) @map("created_at")
+  taskViewCount Int         @default(0) @map("task_view_count")
+  taskAcceptCount Int       @default(0) @map("task_accept_count")
+  lastIp       String?      @db.VarChar(50) @map("last_ip")
+  inviteCode   String?      @unique @db.VarChar(10) @map("invite_code")
   contents     Content[]
   resources    Resource[]
   doppelganger CyberDoppelganger?

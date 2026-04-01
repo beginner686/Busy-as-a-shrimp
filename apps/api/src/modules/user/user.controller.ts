@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put, UseGuards, Ip } from "@nestjs/common";
 import { UserRole } from "@prisma/client";
 import { ok } from "../../common/api-response";
 import { UserService } from "./user.service";
@@ -42,14 +42,14 @@ export class UserController {
   }
 
   @Post("register")
-  async register(@Body() payload: RegisterDto) {
-    const result = await this.userService.register(payload);
+  async register(@Body() payload: RegisterDto, @Ip() ip: string) {
+    const result = await this.userService.register(payload, ip);
     return ok(result, "注册成功");
   }
 
   @Post("login")
-  async login(@Body() payload: LoginDto) {
-    const result = await this.userService.login(payload);
+  async login(@Body() payload: LoginDto, @Ip() ip: string) {
+    const result = await this.userService.login(payload, ip);
     return ok(result, "登录成功");
   }
 
