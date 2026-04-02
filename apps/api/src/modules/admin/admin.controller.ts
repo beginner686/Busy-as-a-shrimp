@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards
+} from "@nestjs/common";
 import { ok } from "../../common/api-response";
 import { AdminAuthGuard } from "./auth/admin-auth.guard";
 import { AdminAuthService } from "./auth/admin-auth.service";
@@ -6,12 +17,16 @@ import { Public } from "./auth/public.decorator";
 import { AdminService } from "./admin.service";
 import {
   AdminLoginDto,
+  CreateDictTypeDto,
+  CreateDictDataDto,
   PublishAnnouncementDto,
   QueryResourcesDto,
   QueryDictDataDto,
   QueryUsersDto,
   ReviewResourceDto,
   UpdateCaptainLevelDto,
+  UpdateDictTypeDto,
+  UpdateDictDataDto,
   UpdateUserStatusDto,
   CaptainLevel
 } from "./dto/admin.dto";
@@ -58,9 +73,39 @@ export class AdminController {
     return ok(await this.adminService.dictTypes());
   }
 
+  @Post("dict/types")
+  async createDictType(@Body() payload: CreateDictTypeDto) {
+    return ok(await this.adminService.createDictType(payload), "Dict type created");
+  }
+
+  @Put("dict/types/:id")
+  async updateDictType(@Param("id") id: string, @Body() payload: UpdateDictTypeDto) {
+    return ok(await this.adminService.updateDictType(Number(id), payload), "Dict type updated");
+  }
+
+  @Delete("dict/types/:id")
+  async deleteDictType(@Param("id") id: string) {
+    return ok(await this.adminService.deleteDictType(Number(id)), "Dict type deleted");
+  }
+
   @Get("dict/data")
   async dictData(@Query() query: QueryDictDataDto) {
     return ok(await this.adminService.dictData(query.dictType));
+  }
+
+  @Post("dict/data")
+  async createDictData(@Body() payload: CreateDictDataDto) {
+    return ok(await this.adminService.createDictData(payload), "Dict data created");
+  }
+
+  @Put("dict/data/:id")
+  async updateDictData(@Param("id") id: string, @Body() payload: UpdateDictDataDto) {
+    return ok(await this.adminService.updateDictData(Number(id), payload), "Dict data updated");
+  }
+
+  @Delete("dict/data/:id")
+  async deleteDictData(@Param("id") id: string) {
+    return ok(await this.adminService.deleteDictData(Number(id)), "Dict data deleted");
   }
 
   @Put("resources/:id")

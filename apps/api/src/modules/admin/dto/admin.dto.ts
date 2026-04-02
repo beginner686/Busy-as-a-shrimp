@@ -2,6 +2,7 @@ export type AdminUserStatus = "active" | "frozen" | "banned";
 export type AdminUserRole = "service" | "resource" | "both";
 export type AdminResourceStatus = "pending" | "active" | "inactive" | "rejected";
 export type CaptainLevel = "normal" | "advanced" | "gold";
+export type DictStatus = "normal" | "disabled";
 
 export interface QueryUsersDto {
   status?: AdminUserStatus;
@@ -18,6 +19,39 @@ export interface QueryResourcesDto {
 
 export interface QueryDictDataDto {
   dictType?: string;
+}
+
+export interface CreateDictTypeDto {
+  dictName: string;
+  dictType: string;
+  status: DictStatus;
+  remark?: string;
+}
+
+export interface UpdateDictTypeDto {
+  dictName: string;
+  dictType: string;
+  status: DictStatus;
+  remark?: string;
+}
+
+export interface CreateDictDataDto {
+  dictType: string;
+  dictCode: string;
+  dictLabel: string;
+  dictValue: string;
+  dictSort: number;
+  status: DictStatus;
+  remark?: string;
+}
+
+export interface UpdateDictDataDto {
+  dictCode: string;
+  dictLabel: string;
+  dictValue: string;
+  dictSort: number;
+  status: DictStatus;
+  remark?: string;
 }
 
 export interface ReviewResourceDto {

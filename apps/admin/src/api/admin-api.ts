@@ -92,18 +92,41 @@ export interface DictType {
   dictName: string;
   dictType: string;
   status: "normal" | "disabled";
+  remark?: string;
+}
+
+export interface UpsertDictTypeDto {
+  dictName: string;
+  dictType: string;
+  status: "normal" | "disabled";
+  remark?: string;
 }
 
 export interface DictData {
+  dictDataId: number;
   dictCode: string;
   dictLabel: string;
   dictValue: string;
   dictSort: number;
   status: "normal" | "disabled";
+  remark?: string;
+}
+
+export interface UpsertDictDataDto {
+  dictCode: string;
+  dictLabel: string;
+  dictValue: string;
+  dictSort: number;
+  status: "normal" | "disabled";
+  remark?: string;
+}
+
+export interface CreateDictDataDto extends UpsertDictDataDto {
+  dictType: string;
 }
 
 // ── API 工厂 ──────────────────────────────────────────
-export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "post">) {
+export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "post" | "delete">) {
   return {
     // 统计
     stats(): Promise<AdminStats> {
@@ -163,8 +186,26 @@ export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "pos
     dictTypes(): Promise<DictType[]> {
       return client.get<DictType[]>("/admin/dict/types");
     },
+    createDictType(dto: UpsertDictTypeDto): Promise<DictType> {
+      return client.post<DictType>("/admin/dict/types", { body: dto });
+    },
+    updateDictType(dictId: number, dto: UpsertDictTypeDto): Promise<DictType> {
+      return client.put<DictType>(`/admin/dict/types/${dictId}`, { body: dto });
+    },
+    deleteDictType(dictId: number): Promise<{ dictId: number }> {
+      return client.delete<{ dictId: number }>(`/admin/dict/types/${dictId}`);
+    },
     dictData(dictType: string): Promise<DictData[]> {
       return client.get<DictData[]>(`/admin/dict/data?dictType=${encodeURIComponent(dictType)}`);
+    },
+    createDictData(dto: CreateDictDataDto): Promise<DictData> {
+      return client.post<DictData>("/admin/dict/data", { body: dto });
+    },
+    updateDictData(dictDataId: number, dto: UpsertDictDataDto): Promise<DictData> {
+      return client.put<DictData>(`/admin/dict/data/${dictDataId}`, { body: dto });
+    },
+    deleteDictData(dictDataId: number): Promise<{ dictDataId: number }> {
+      return client.delete<{ dictDataId: number }>(`/admin/dict/data/${dictDataId}`);
     }
   };
 }
