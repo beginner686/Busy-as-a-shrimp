@@ -28,7 +28,7 @@ import {
 } from "@/features/match-list/match-list-feature";
 import { toast } from "@/hooks/use-toast";
 import { useAuthStatus } from "@/stores/use-auth-status";
-import { loadClientEnv } from "@/config/env";
+
 import { getErrorMessage } from "@/utils/error-message";
 
 type DispatchResult = {
@@ -52,12 +52,6 @@ export default function HomePage() {
   const [pendingCount, setPendingCount] = useState(0);
   const [loadingPendingCount, setLoadingPendingCount] = useState(false);
   const [dispatchResult, setDispatchResult] = useState<DispatchResult | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const env = loadClientEnv();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const loginStatusLabel = useMemo(() => {
     if (!hydrated) {
@@ -344,40 +338,6 @@ export default function HomePage() {
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </Button>
-            </div>
-          </article>
-
-          <article className={`${obsidianCardClass} p-6 md:col-span-2`}>
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-mono font-bold tracking-[0.3em] text-zinc-600">
-                  RUNTIME
-                </p>
-                <h2 className="mt-2 text-xl font-extrabold tracking-tighter text-zinc-100">
-                  系统面板
-                </h2>
-              </div>
-              <span className="font-mono text-sm font-bold tracking-tighter text-cyan-400">
-                pending={loadingPendingCount ? "..." : pendingCount}
-              </span>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/[0.03] bg-black/40 p-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-                  api_base_url
-                </p>
-                <p className="mt-1 truncate font-mono text-xs tracking-tight text-cyan-400">
-                  {isMounted ? env.apiBaseUrl : "载入中..."}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/[0.03] bg-black/40 p-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)]">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-                  auth_state
-                </p>
-                <p className="mt-1 text-sm font-medium tracking-tight text-zinc-300">
-                  {loginStatusLabel}
-                </p>
-              </div>
             </div>
           </article>
         </div>

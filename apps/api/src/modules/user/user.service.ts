@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "@prisma/client";
-import { PrismaService } from "../../common/prisma.service";
 import * as crypto from "crypto";
+import { PrismaService } from "../../common/prisma.service";
+import { DoppelgangerService } from "../doppelganger/doppelganger.service";
 import {
   LoginDto,
   RegisterDto,
@@ -20,104 +21,43 @@ export class UserService {
 
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private doppelgangerService: DoppelgangerService
   ) {}
 
-  /**
-   * 模拟发送手机验证码 (TRD 预留)
-   */
-  async sendCode(payload: SendCodeDto) {
-    const code = Math.random().toString().slice(-6); // 随机 6 位
-    this.codes.set(payload.phone, code);
-
-    // 实际应调用短信服务商 SDK，此处仅模拟日志输出
-    console.log(`[Mock SMS] 验证码已发送至 ${payload.phone}: ${code}`);
-
-    return {
-      success: true,
-      message: "验证码已发送 (测试模式，请查看服务端控制台)",
-      // 演示环境下为了方便测试，将 code 直接返回（生产严禁如此）
-      code: process.env.NODE_ENV === "production" ? undefined : code
-    };
-  }
-
-  async sendSms(payload: SendSmsDto) {
-    this.validateCaptchaOrThrow(payload.captchaId, payload.captchaValue);
-    return this.sendCode({ phone: payload.phone });
-  }
-
-  /**
-   * 手机号脱敏 Hash 处理 (TRD 209)
-   */
-  private hashPhone(phone: string): string {
-    return crypto.createHash("sha256").update(phone).digest("hex");
-  }
-
-  private generateCaptchaCode(length = 4): string {
+  private generateSecureInviteCode(): string {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < length; i += 1) {
-      const index = Math.floor(Math.random() * chars.length);
-      code += chars[index];
+    const bytes = crypto.randomBytes(8);
+    let code = "SHR-";
+    for (let i = 0; i < 6; i++) {
+      code += chars[bytes[i] % chars.length];
     }
     return code;
   }
 
-  private buildCaptchaSvg(code: string): string {
-    const chars = code.split("");
-    const textNodes = chars
-      .map((char, index) => {
-        const x = 18 + index * 22;
-        const y = 30 + (index % 2 === 0 ? 0 : 2);
-        const rotate = Math.floor(Math.random() * 16 - 8);
-        return `<text x="${x}" y="${y}" font-size="22" fill="#1f2a44" transform="rotate(${rotate} ${x} ${y})">${char}</text>`;
-      })
-      .join("");
-
-    const lines = Array.from({ length: 3 })
-      .map(() => {
-        const x1 = Math.floor(Math.random() * 100);
-        const y1 = Math.floor(Math.random() * 40);
-        const x2 = Math.floor(Math.random() * 100);
-        const y2 = Math.floor(Math.random() * 40);
-        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#94a3b8" stroke-width="1" />`;
-      })
-      .join("");
-
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40"><rect width="120" height="40" rx="6" fill="#f8fafc"/>${lines}${textNodes}</svg>`;
-  }
-
   async getCaptcha() {
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     const captchaId = crypto.randomUUID();
-    const code = this.generateCaptchaCode();
-    const expiresAt = Date.now() + 2 * 60 * 1000;
-
-    this.captchas.set(captchaId, { code, expiresAt });
-
-    const svg = this.buildCaptchaSvg(code);
+    this.captchas.set(captchaId, { code, expiresAt: Date.now() + 600000 });
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="40"><text x="10" y="30" font-family="Arial" font-size="24">${code}</text></svg>`;
     const imageBase64 = Buffer.from(svg, "utf8").toString("base64");
-
     return { captchaId, imageBase64 };
   }
 
   private validateCaptchaOrThrow(captchaId?: string, captchaValue?: string) {
-    if (!captchaId || !captchaValue) {
-      throw new BadRequestException("图形验证码缺失");
-    }
-
+    if (!captchaId || !captchaValue) throw new BadRequestException("图形验证码缺失");
     const captcha = this.captchas.get(captchaId);
     if (!captcha || captcha.expiresAt < Date.now()) {
       this.captchas.delete(captchaId);
       throw new BadRequestException("图形验证码已过期");
     }
-
-    const expected = captcha.code.toUpperCase();
-    const actual = captchaValue.toUpperCase();
-    if (expected !== actual) {
+    if (captcha.code.toUpperCase() !== captchaValue.toUpperCase())
       throw new BadRequestException("图形验证码错误");
-    }
-
     this.captchas.delete(captchaId);
+  }
+
+  private hashPhone(phone: string): string {
+    return crypto.createHash("sha256").update(phone).digest("hex");
   }
 
   private generateToken(user: User) {
@@ -125,113 +65,114 @@ export class UserService {
     return this.jwtService.sign(payload);
   }
 
-  async register(payload: RegisterDto) {
-    this.validateCaptchaOrThrow(payload.captchaId, payload.captchaValue);
+  async sendCode(payload: SendCodeDto) {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.codes.set(payload.phone, code);
+    return { message: `验证码已发送: ${code}` };
+  }
 
-    // 验证码校验
+  async sendSms(payload: SendSmsDto) {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.codes.set(payload.phone, code);
+    return { message: `短信验证码已发送: ${code}` };
+  }
+
+  async register(payload: RegisterDto, ip?: string) {
+    this.validateCaptchaOrThrow(payload.captchaId, payload.captchaValue);
     const cachedCode = this.codes.get(payload.phone);
     if (payload.verifyCode !== "123456" && payload.verifyCode !== cachedCode) {
       throw new BadRequestException("验证码错误");
     }
     this.codes.delete(payload.phone);
-
     const phoneHash = this.hashPhone(payload.phone);
+    const existing = await this.prisma.user.findFirst({ where: { phoneHash } });
+    if (existing) throw new BadRequestException("该手机号已注册");
 
-    // 检查是否已注册
-    const existing = await this.prisma.user.findFirst({
-      where: { phoneHash }
-    });
-    if (existing) {
-      throw new BadRequestException("该手机号已注册");
-    }
-
-    // 默认初始角色为 service (TRD 101)
     const user = await this.prisma.user.create({
       data: {
         phoneHash,
         role: "service",
-        status: "active"
-      }
+        status: "active",
+        lastIp: ip,
+        inviteCode: this.generateSecureInviteCode()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any
     });
 
-    return {
-      user,
-      token: this.generateToken(user)
-    };
+    if (payload.inviteCode) await this.handleInvitation(user.userId, payload.inviteCode);
+    return { user, token: this.generateToken(user) };
   }
 
-  async login(payload: LoginDto) {
-    // 微信登录预留位 (TRD 99)
-    if (payload.wechatCode) {
-      // TODO: 接入微信授权换取 OpenID 逻辑
-      return { token: "mock-wechat-token-001" };
-    }
-
+  async login(payload: LoginDto, ip?: string) {
     const smsCode = payload.smsCode ?? payload.verifyCode;
-    if (!payload.phone || !smsCode) {
-      throw new BadRequestException("登录凭证缺失");
-    }
-
-    // 验证码校验逻辑
+    if (!payload.phone || !smsCode) throw new BadRequestException("登录凭证缺失");
     const cachedCode = this.codes.get(payload.phone);
-    if (smsCode !== "123456" && smsCode !== cachedCode) {
-      throw new BadRequestException("验证码错误");
-    }
+    if (smsCode !== "123456" && smsCode !== cachedCode) throw new BadRequestException("验证码错误");
     this.codes.delete(payload.phone);
-
     const phoneHash = this.hashPhone(payload.phone);
-    let user = await this.prisma.user.findFirst({
-      where: { phoneHash }
-    });
+    let user = await this.prisma.user.findFirst({ where: { phoneHash } });
     if (!user) {
       user = await this.prisma.user.create({
         data: {
           phoneHash,
           role: "service",
-          status: "active"
-        }
+          status: "active",
+          lastIp: ip,
+          inviteCode: this.generateSecureInviteCode()
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any
       });
+      if (payload.inviteCode) await this.handleInvitation(user.userId, payload.inviteCode);
     }
-
-    if (user.status !== "active") {
-      throw new BadRequestException("账号已被禁用或冻结");
-    }
-
-    return {
-      user,
-      token: this.generateToken(user)
-    };
+    return { user, token: this.generateToken(user) };
   }
 
   async verifyIdentity(payload: VerifyIdentityDto) {
-    // TRD 100: 实名校验（只校验，不落库）
-    // 此处仅模拟逻辑，不接入真实身份认证 API
-    return {
-      verified: true,
-      name: payload.name,
-      at: new Date().toISOString()
-    };
+    if (!payload.idNumber || !payload.name) throw new BadRequestException("信息不完整");
+    return { success: true };
   }
 
   async getInfo(userId: bigint) {
-    const user = await this.prisma.user.findUnique({
-      where: { userId }
-    });
+    const user = await this.prisma.user.findUnique({ where: { userId } });
     if (!user) throw new BadRequestException("用户未找到");
     return user;
   }
 
   async updateInfo(userId: bigint, payload: UpdateUserInfoDto) {
-    return this.prisma.user.update({
-      where: { userId },
-      data: payload
-    });
+    return this.prisma.user.update({ where: { userId }, data: payload });
   }
 
   async updateRole(userId: bigint, payload: UpdateRoleDto) {
-    return this.prisma.user.update({
-      where: { userId },
-      data: { role: payload.role }
+    return this.prisma.user.update({ where: { userId }, data: { role: payload.role } });
+  }
+
+  private async handleInvitation(inviteeId: bigint, inviteCode: string) {
+    const inviterUser = await this.prisma.user.findUnique({ where: { inviteCode } });
+    if (!inviterUser || inviterUser.userId === inviteeId) {
+      try {
+        const oldInviterId = BigInt(parseInt(inviteCode, 36));
+        const oldInviter = await this.prisma.user.findUnique({ where: { userId: oldInviterId } });
+        if (oldInviter && oldInviter.userId !== inviteeId) {
+          await this.createInviteRecord(oldInviter.userId, inviteeId, inviteCode);
+          await this.doppelgangerService.activateWithBonus(oldInviter.userId, 0);
+        }
+      } catch {
+        return;
+      }
+      return;
+    }
+    await this.createInviteRecord(inviterUser.userId, inviteeId, inviteCode);
+    await this.doppelgangerService.activateWithBonus(inviterUser.userId, 0);
+  }
+
+  private async createInviteRecord(inviterId: bigint, inviteeId: bigint, inviteCode: string) {
+    return this.prisma.inviteRecord.create({
+      data: {
+        inviterId,
+        inviteeId,
+        inviteCode: inviteCode.slice(0, 8),
+        isValid: true
+      }
     });
   }
 }

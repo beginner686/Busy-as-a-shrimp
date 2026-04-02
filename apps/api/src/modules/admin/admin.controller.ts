@@ -8,6 +8,7 @@ import {
   AdminLoginDto,
   PublishAnnouncementDto,
   QueryResourcesDto,
+  QueryDictDataDto,
   QueryUsersDto,
   ReviewResourceDto,
   UpdateCaptainLevelDto,
@@ -50,6 +51,16 @@ export class AdminController {
   @Get("resources")
   async resources(@Query() query: QueryResourcesDto) {
     return ok(await this.adminService.resources(query));
+  }
+
+  @Get("dict/types")
+  async dictTypes() {
+    return ok(await this.adminService.dictTypes());
+  }
+
+  @Get("dict/data")
+  async dictData(@Query() query: QueryDictDataDto) {
+    return ok(await this.adminService.dictData(query.dictType));
   }
 
   @Put("resources/:id")

@@ -16,6 +16,10 @@ export interface QueryResourcesDto {
   status?: AdminResourceStatus;
 }
 
+export interface QueryDictDataDto {
+  dictType?: string;
+}
+
 export interface ReviewResourceDto {
   decision: "approve" | "reject";
   reason?: string;

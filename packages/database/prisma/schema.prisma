@@ -19,8 +19,13 @@ model User {
   captainLevel CaptainLevel @default(normal) @map("captain_level")
   maskedPhone  String?      @map("masked_phone") @db.VarChar(20)
   createdAt    DateTime     @default(now()) @map("created_at")
+  taskViewCount Int         @default(0) @map("task_view_count")
+  taskAcceptCount Int       @default(0) @map("task_accept_count")
+  lastIp       String?      @db.VarChar(50) @map("last_ip")
+  inviteCode   String?      @unique @db.VarChar(10) @map("invite_code")
   contents     Content[]
   resources    Resource[]
+  doppelganger CyberDoppelganger?
 
   @@map("users")
 }
@@ -176,3 +181,117 @@ enum CaptainLevel {
   advanced
   gold
 }
+
+model CyberDoppelganger {
+  doppelgangerId BigInt             @id @default(autoincrement()) @map("doppelganger_id")
+  userId         BigInt             @unique @map("user_id")
+  balance        Decimal            @default(0) @db.Decimal(10, 2)
+  status         DoppelgangerStatus @default(inactive)
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  user           User               @relation(fields: [userId], references: [userId])
+  transactions   PointTransaction[]
+
+  @@map("cyber_doppelgangers")
+}
+
+model ActivityPeriod {
+  periodId    BigInt   @id @default(autoincrement()) @map("period_id")
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  rewardPool  Decimal  @default(5000) @map("reward_pool") @db.Decimal(10, 2)
+  isProcessed Boolean  @default(false) @map("is_processed")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([startTime, endTime])
+  @@map("activity_periods")
+}
+
+model PointTransaction {
+  transactionId  BigInt            @id @default(autoincrement()) @map("transaction_id")
+  doppelgangerId BigInt            @map("doppelganger_id")
+  amount         Decimal           @db.Decimal(10, 2)
+  type           PointTransType
+  metadata       Json?
+  createdAt      DateTime          @default(now()) @map("created_at")
+  doppelganger   CyberDoppelganger @relation(fields: [doppelgangerId], references: [doppelgangerId])
+
+  @@index([doppelgangerId])
+  @@map("point_transactions")
+}
+
+model SignInRecord {
+  recordId       BigInt   @id @default(autoincrement()) @map("record_id")
+  userId         BigInt   @map("user_id")
+  lastSignInDate DateTime @map("last_sign_in_date")
+  streakDays     Int      @default(1) @map("streak_days")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, lastSignInDate])
+  @@map("sign_in_records")
+}
+
+
+model BountyTask {
+  taskId      BigInt           @id @default(autoincrement()) @map("task_id")
+  title       String           @db.VarChar(100)
+  content     String           @db.Text
+  points      Decimal          @db.Decimal(10, 2)
+  difficulty  TaskDifficulty   @default(MEDIUM)
+  status      TaskStatus       @default(PUBLISHED)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  submissions TaskSubmission[]
+
+  @@map("bounty_tasks")
+}
+
+model TaskSubmission {
+  submissionId BigInt           @id @default(autoincrement()) @map("submission_id")
+  userId       BigInt           @map("user_id")
+  taskId       BigInt           @map("task_id")
+  proof        String?          @db.Text
+  status       SubmissionStatus @default(PENDING)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  task         BountyTask       @relation(fields: [taskId], references: [taskId])
+
+  @@index([taskId])
+  @@index([userId])
+  @@map("task_submissions")
+}
+
+enum DoppelgangerStatus {
+  active
+  inactive
+  frozen
+}
+
+enum PointTransType {
+  INVITE_REWARD
+  TASK_REWARD
+  TOKEN_CONSUME
+  SYSTEM_ADJUST
+  INITIAL_BONUS
+  DAILY_SIGN_IN
+  CONTRIBUTION_REWARD
+}
+
+enum TaskStatus {
+  PUBLISHED
+  FINISHED
+  CANCELLED
+}
+
+enum TaskDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+

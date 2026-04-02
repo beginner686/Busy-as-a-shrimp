@@ -1,4 +1,4 @@
-﻿import { Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Prisma, ResourceStatus } from "@prisma/client";
 import { PrismaService } from "../../common/prisma.service";
 import { AdminUserStatus, CaptainLevel, QueryResourcesDto, QueryUsersDto } from "./dto/admin.dto";
@@ -22,6 +22,23 @@ type ExtendedPrisma = PrismaService & {
     >;
   };
 };
+
+type DictStatus = "normal" | "disabled";
+
+export interface AdminDictType {
+  dictId: number;
+  dictName: string;
+  dictType: string;
+  status: DictStatus;
+}
+
+export interface AdminDictData {
+  dictCode: string;
+  dictLabel: string;
+  dictValue: string;
+  dictSort: number;
+  status: DictStatus;
+}
 
 function normalizeTagList(value: Prisma.JsonValue): string[] {
   if (Array.isArray(value)) {
@@ -68,13 +85,18 @@ function normalizePriceRange(
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
+import { ResourceService } from "../resource/resource.service";
+
 @Injectable()
 export class AdminService {
   private get extendedPrisma() {
     return this.prisma as unknown as ExtendedPrisma;
   }
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resourceService: ResourceService
+  ) {}
 
   async users(filters: QueryUsersDto) {
     const { status, role } = filters;
@@ -144,12 +166,67 @@ export class AdminService {
     }));
   }
 
+  async dictTypes(): Promise<AdminDictType[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        dict_id: bigint | number;
+        dict_name: string;
+        dict_type: string;
+        status: DictStatus;
+      }>
+    >`SELECT dict_id, dict_name, dict_type, status FROM dict_types ORDER BY dict_id ASC`;
+
+    return rows.map((item) => ({
+      dictId: Number(item.dict_id),
+      dictName: item.dict_name,
+      dictType: item.dict_type,
+      status: item.status
+    }));
+  }
+
+  async dictData(dictType?: string): Promise<AdminDictData[]> {
+    if (!dictType) {
+      return [];
+    }
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        dict_code: string;
+        dict_label: string;
+        dict_value: string;
+        dict_sort: number | bigint;
+        status: DictStatus;
+      }>
+    >`
+      SELECT dict_code, dict_label, dict_value, dict_sort, status
+      FROM dict_data
+      WHERE dict_type = ${dictType}
+      ORDER BY dict_sort ASC
+    `;
+
+    return rows.map((item) => ({
+      dictCode: item.dict_code,
+      dictLabel: item.dict_label,
+      dictValue: item.dict_value,
+      dictSort: Number(item.dict_sort),
+      status: item.status
+    }));
+  }
+
   async reviewResource(id: number, decision: "approve" | "reject", reason?: string) {
-    const status = decision === "approve" ? ResourceStatus.active : ResourceStatus.rejected;
+    if (decision === "approve") {
+      const updated = await this.resourceService.approveResource(BigInt(id));
+      return {
+        resourceId: Number(updated.resourceId),
+        status: updated.status,
+        note: "Approved via ResourceService logic"
+      };
+    }
+
     const updated = await this.prisma.resource.update({
       where: { resourceId: BigInt(id) },
       data: {
-        status,
+        status: ResourceStatus.rejected,
         verifiedAt: new Date(),
         lastUpdate: new Date()
       }
