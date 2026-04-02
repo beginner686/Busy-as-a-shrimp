@@ -39,7 +39,17 @@ export class UserService {
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     const captchaId = crypto.randomUUID();
     this.captchas.set(captchaId, { code, expiresAt: Date.now() + 600000 });
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="40"><text x="10" y="30" font-family="Arial" font-size="24">${code}</text></svg>`;
+    const chars = code.split("");
+    const charNodes = chars
+      .map((char, index) => {
+        const x = 18 + index * 22;
+        const y = 28 + (Math.floor(Math.random() * 7) - 3);
+        const rotate = Math.floor(Math.random() * 21) - 10;
+        return `<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0f172a" transform="rotate(${rotate} ${x} ${y})">${char}</text>`;
+      })
+      .join("");
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40"><rect width="120" height="40" rx="6" fill="#e2e8f0"/><path d="M8 30 C 30 6, 50 35, 78 10 S 112 30, 116 14" stroke="#94a3b8" stroke-width="1.2" fill="none" opacity="0.55"/><path d="M4 12 C 26 35, 52 4, 80 28 S 108 6, 116 24" stroke="#64748b" stroke-width="1" fill="none" opacity="0.35"/>${charNodes}</svg>`;
     const imageBase64 = Buffer.from(svg, "utf8").toString("base64");
     return { captchaId, imageBase64 };
   }
