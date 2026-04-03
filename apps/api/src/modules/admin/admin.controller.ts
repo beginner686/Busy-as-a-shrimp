@@ -139,6 +139,11 @@ export class AdminController {
     return ok(await this.adminService.announcements());
   }
 
+  @Delete("announcements/:id")
+  async deleteAnnouncement(@Param("id") id: string) {
+    return ok(await this.adminService.deleteAnnouncement(id), "Announcement deleted");
+  }
+
   @Get("captain/ranking")
   async captainRanking() {
     return ok(await this.adminService.captainRanking());

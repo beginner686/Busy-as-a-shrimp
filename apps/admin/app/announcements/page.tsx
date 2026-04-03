@@ -92,8 +92,19 @@ export default function AnnouncementsPage() {
     }
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
+    /* 乐观删除：先从 UI 移除 */
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    try {
+      await getAdminApi().deleteAnnouncement(id);
+    } catch (err) {
+      console.error("删除公告失败", err);
+      /* 如果 API 调用失败，重新拉取列表恢复 */
+      getAdminApi()
+        .announcements()
+        .then((data) => setAnnouncements(data))
+        .catch(() => {});
+    }
   }
 
   return (
@@ -277,7 +288,7 @@ export default function AnnouncementsPage() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => handleDelete(ann.id)}
+                        onClick={() => void handleDelete(ann.id)}
                         style={{
                           padding: "2px 10px",
                           borderRadius: "6px",

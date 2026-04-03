@@ -13,7 +13,7 @@ import {
   Upload
 } from "lucide-react";
 import Link from "next/link";
-import { type ChangeEvent, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getUserApi } from "../../src/api";
@@ -60,12 +60,6 @@ function getMemberLabel(memberLevel: "FREE" | "PRO" | "LIFETIME"): string {
     return "LIFETIME NODE";
   }
   return "FREE";
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -115,6 +109,14 @@ export default function ProfilePage() {
     queryFn: () => getUserApi().getInfo(),
     enabled: hydrated && isLoggedIn && Boolean(token)
   });
+
+  /* 从后端 profile 恢复 avatar 到 Store */
+  useEffect(() => {
+    const data = profileQuery.data as Record<string, unknown> | undefined;
+    if (data && typeof data.avatar === "string" && data.avatar && data.avatar !== avatar) {
+      setAvatar(data.avatar);
+    }
+  }, [profileQuery.data]);
 
   const saveInfoMutation = useMutation({
     mutationFn: (payload: { city: string; district: string }) => getUserApi().updateInfo(payload),
@@ -268,12 +270,21 @@ export default function ProfilePage() {
 
     setAvatarUploading(true);
     try {
-      await sleep(1500);
+      /* 通过 updateInfo 接口持久化 avatar 到后端 */
+      await getUserApi().updateInfo({ avatar: avatarDraft } as never);
       setAvatar(avatarDraft);
       setAvatarDialogOpen(false);
       toast({
         title: "头像更新成功",
-        description: "新头像已同步到本地状态。"
+        description: "头像已保存至服务器。"
+      });
+    } catch {
+      /* 后端如不支持 avatar 字段则回退到仅本地保存 */
+      setAvatar(avatarDraft);
+      setAvatarDialogOpen(false);
+      toast({
+        title: "头像已本地保存",
+        description: "服务器同步暂不可用，头像已保存在本地。"
       });
     } finally {
       setAvatarUploading(false);

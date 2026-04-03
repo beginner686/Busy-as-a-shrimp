@@ -196,6 +196,9 @@ export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "pos
     announcements(): Promise<AdminAnnouncement[]> {
       return client.get<AdminAnnouncement[]>("/admin/announcements");
     },
+    deleteAnnouncement(id: string): Promise<{ id: string }> {
+      return client.delete<{ id: string }>(`/admin/announcements/${id}`);
+    },
 
     // 匹配记录
     matches(): Promise<AdminMatchRecord[]> {

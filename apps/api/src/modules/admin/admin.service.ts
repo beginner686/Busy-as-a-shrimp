@@ -36,6 +36,9 @@ type ExtendedPrisma = PrismaService & {
         createdAt: Date;
       }>
     >;
+    delete: (args: { where: { noticeId: bigint } }) => Promise<{
+      noticeId: bigint;
+    }>;
   };
 };
 
@@ -630,6 +633,14 @@ export class AdminService {
       publishedBy: item.publisher,
       publishedAt: item.createdAt.toISOString()
     }));
+  }
+
+  async deleteAnnouncement(id: string) {
+    const noticeId = BigInt(id);
+    await this.extendedPrisma.announcement.delete({
+      where: { noticeId }
+    });
+    return { id };
   }
 
   async captainRanking() {
