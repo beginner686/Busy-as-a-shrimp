@@ -78,13 +78,13 @@ export class UserService {
   async sendCode(payload: SendCodeDto) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     this.codes.set(payload.phone, code);
-    return { message: `验证码已发送: ${code}` };
+    return { message: `验证码已发送: ${code}`, code };
   }
 
   async sendSms(payload: SendSmsDto) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     this.codes.set(payload.phone, code);
-    return { message: `短信验证码已发送: ${code}` };
+    return { message: `短信验证码已发送: ${code}`, code };
   }
 
   async register(payload: RegisterDto, ip?: string) {
