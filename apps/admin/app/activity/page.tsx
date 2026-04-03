@@ -15,17 +15,22 @@ export default function ActivityPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mocking API call for demonstration. In real world, use fetch to /activity/ranking
-    setTimeout(() => {
-      setRanking([
-        { rank: 1, userId: 101, inviteCount: 45, maskedPhone: "138****8888" },
-        { rank: 2, userId: 105, inviteCount: 38, maskedPhone: "159****6666" },
-        { rank: 3, userId: 110, inviteCount: 32, maskedPhone: "133****1234" },
-        { rank: 4, userId: 102, inviteCount: 28, maskedPhone: "188****5555" },
-        { rank: 5, userId: 120, inviteCount: 25, maskedPhone: "177****9999" }
-      ]);
-      setLoading(false);
-    }, 1000);
+    import("../../src/api").then(({ getAdminApi }) => {
+      getAdminApi()
+        .captainRanking()
+        .then((data) => {
+          setRanking(
+            data.map((item, index) => ({
+              rank: index + 1,
+              userId: item.captainId,
+              inviteCount: item.monthInvites,
+              maskedPhone: item.name
+            }))
+          );
+        })
+        .catch((err) => console.error("加载排名失败", err))
+        .finally(() => setLoading(false));
+    });
   }, []);
 
   return (

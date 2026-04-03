@@ -2,11 +2,11 @@
 
 import { motion } from "framer-motion";
 import { Copy, Crown, Sparkles, UsersRound, Wallet2 } from "lucide-react";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import type { CaptainCommissionRecord } from "@/api/user-api";
 
-type CommissionStatus = "PAID" | "PENDING" | "INVALID";
+type CommissionStatus = "PAID" | "PENDING" | "INVALID" | "active" | "paid" | "pending";
 
 type CommissionLog = {
   id: number;
@@ -16,65 +16,84 @@ type CommissionLog = {
   status: CommissionStatus;
 };
 
-const inviteLink = "airp.com/join?ref=CYBER_SHRIMP_99";
-
-const mockLogs: CommissionLog[] = [
-  {
-    id: 1,
-    phoneMasked: "138****9999",
-    timestamp: "2026-03-28 18:08:32",
-    amount: 50,
-    status: "PAID"
-  },
-  {
-    id: 2,
-    phoneMasked: "152****7711",
-    timestamp: "2026-03-28 16:26:09",
-    amount: 88,
-    status: "PENDING"
-  },
-  {
-    id: 3,
-    phoneMasked: "187****1145",
-    timestamp: "2026-03-28 15:03:47",
-    amount: 50,
-    status: "INVALID"
-  },
-  {
-    id: 4,
-    phoneMasked: "155****2800",
-    timestamp: "2026-03-27 22:40:13",
-    amount: 66,
-    status: "PAID"
-  }
-];
-
 function getStatusBadgeClass(status: CommissionStatus): string {
-  if (status === "PAID") {
+  if (status === "PAID" || status === "paid" || status === "active") {
     return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
   }
-  if (status === "PENDING") {
+  if (status === "PENDING" || status === "pending") {
     return "bg-amber-500/10 text-amber-400 border border-amber-500/20";
   }
   return "bg-rose-500/10 text-rose-400 border border-rose-500/20 line-through";
 }
 
 function getStatusLabel(status: CommissionStatus): string {
-  if (status === "PAID") {
+  if (status === "PAID" || status === "paid" || status === "active") {
     return "PAID";
   }
-  if (status === "PENDING") {
+  if (status === "PENDING" || status === "pending") {
     return "PENDING";
   }
   return "INVALID";
 }
 
+function formatAmount(amount: number | string): string {
+  if (typeof amount === "number") return amount.toFixed(2);
+  const n = Number(amount);
+  return isNaN(n) ? "0.00" : n.toFixed(2);
+}
+
 export default function CaptainPage() {
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [stats, setStats] = useState({ validInvites: 0, totalCommission: 0 });
+  const [info, setInfo] = useState({ level: "normal", inviteLink: "" });
+  const [logs, setLogs] = useState<CommissionLog[]>([]);
+
+  useEffect(() => {
+    import("@/api").then(({ getUserApi }) => {
+      Promise.all([
+        getUserApi()
+          .getCaptainInfo()
+          .catch(() => null),
+        getUserApi()
+          .getCaptainStats()
+          .catch(() => null),
+        getUserApi()
+          .getCaptainCommissions()
+          .catch(() => null)
+      ]).then(([infoData, statsData, commData]) => {
+        if (infoData) {
+          setInfo({
+            level: infoData.level || "normal",
+            inviteLink: infoData.inviteLink || ""
+          });
+        }
+        if (statsData) {
+          setStats((prev) => ({ ...prev, validInvites: statsData.validInvites || 0 }));
+        }
+        if (commData) {
+          setStats((prev) => ({ ...prev, totalCommission: commData.summary?.paidAmount || 0 }));
+          if (commData.records && Array.isArray(commData.records)) {
+            setLogs(
+              commData.records.map((r: CaptainCommissionRecord) => ({
+                id: r.commissionId,
+                phoneMasked: "User " + r.orderId,
+                timestamp: r.confirmedAt ? new Date(r.confirmedAt).toLocaleString() : "",
+                amount: r.commissionAmount,
+                status: r.status as CommissionStatus
+              }))
+            );
+          }
+        }
+        setLoading(false);
+      });
+    });
+  }, []);
 
   async function handleCopyInviteLink() {
     try {
-      await navigator.clipboard.writeText(`https://${inviteLink}`);
+      await navigator.clipboard.writeText(info.inviteLink);
       setCopied(true);
       toast({
         title: "复制成功",
@@ -88,6 +107,10 @@ export default function CaptainPage() {
         description: "浏览器未授予剪贴板权限。"
       });
     }
+  }
+
+  if (loading) {
+    return <div className="p-10 text-center text-zinc-400 font-mono">Loading Neural Links...</div>;
   }
 
   return (
@@ -110,7 +133,7 @@ export default function CaptainPage() {
             <Wallet2 className="h-4 w-4" />
           </div>
           <p className="bg-gradient-to-br from-emerald-400 to-cyan-500 bg-clip-text font-mono text-5xl font-black text-transparent">
-            ¥25,680
+            ¥{formatAmount(stats.totalCommission)}
           </p>
           <p className="mt-2 text-xs tracking-widest text-zinc-400">总计赚取 (CNY)</p>
         </motion.article>
@@ -124,7 +147,9 @@ export default function CaptainPage() {
           <div className="mb-6 inline-flex rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-2.5 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.18)]">
             <UsersRound className="h-4 w-4" />
           </div>
-          <p className="font-mono text-3xl font-bold tracking-tight text-zinc-100">486</p>
+          <p className="font-mono text-3xl font-bold tracking-tight text-zinc-100">
+            {stats.validInvites}
+          </p>
           <p className="mt-2 text-xs tracking-widest text-zinc-400">有效邀请</p>
         </motion.article>
 
@@ -137,9 +162,11 @@ export default function CaptainPage() {
           <div className="mb-6 inline-flex rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5 text-amber-300">
             <Crown className="h-4 w-4" />
           </div>
-          <p className="text-xl font-semibold text-zinc-100">金牌团长 (Gold Tier)</p>
+          <p className="text-xl font-semibold text-zinc-100">
+            团长等级 ({info.level.toUpperCase()} Tier)
+          </p>
           <span className="mt-3 inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold tracking-wider text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.16)]">
-            GOLD LEVEL
+            {info.level.toUpperCase()} LEVEL
           </span>
         </motion.article>
       </section>
@@ -152,7 +179,7 @@ export default function CaptainPage() {
       >
         <div className="space-y-1">
           <p className="text-[11px] font-mono tracking-[0.2em] text-cyan-400/70">INVITE ENGINE</p>
-          <p className="font-mono text-sm text-zinc-400">{inviteLink}</p>
+          <p className="font-mono text-sm text-zinc-400">{info.inviteLink || "---"}</p>
         </div>
         <button
           type="button"
@@ -171,7 +198,7 @@ export default function CaptainPage() {
         </div>
 
         <div className="space-y-2">
-          {mockLogs.map((log, index) => (
+          {logs.map((log, index) => (
             <motion.div
               key={log.id}
               initial={{ opacity: 0, y: 10 }}
@@ -181,7 +208,7 @@ export default function CaptainPage() {
             >
               <div className="flex min-w-0 flex-col gap-1">
                 <p className="font-mono text-sm text-zinc-100">{log.phoneMasked}</p>
-                <p className="text-xs text-zinc-500">{log.timestamp}</p>
+                <p className="text-xs text-zinc-500">{log.timestamp || "处理中"}</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -193,7 +220,7 @@ export default function CaptainPage() {
                 <span
                   className={`font-mono text-sm font-semibold ${log.status === "INVALID" ? "text-zinc-500 line-through" : "text-emerald-300"}`}
                 >
-                  +¥{log.amount.toFixed(2)}
+                  +¥{formatAmount(log.amount)}
                 </span>
               </div>
             </motion.div>

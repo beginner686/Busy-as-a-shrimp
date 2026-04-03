@@ -60,6 +60,8 @@ export interface ReviewResourceDto {
 }
 
 export interface PublishAnnouncementDto {
+  title: string;
+  type: string;
   content: string;
   publisher?: string;
 }

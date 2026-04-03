@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Prisma, ResourceStatus } from "@prisma/client";
+import { Prisma, ResourceStatus, SubmissionStatus } from "@prisma/client";
 import { PrismaService } from "../../common/prisma.service";
 import {
   AdminUserStatus,
@@ -16,8 +16,12 @@ import {
 type ExtendedPrisma = PrismaService & {
   announcement: {
     count: () => Promise<number>;
-    create: (args: { data: { content: string; publisher: string } }) => Promise<{
+    create: (args: {
+      data: { title: string; type: string; content: string; publisher: string };
+    }) => Promise<{
       noticeId: bigint;
+      title: string;
+      type: string;
       content: string;
       publisher: string;
       createdAt: Date;
@@ -25,6 +29,8 @@ type ExtendedPrisma = PrismaService & {
     findMany: (args: { orderBy: { createdAt: "desc" }; take: number }) => Promise<
       Array<{
         noticeId: bigint;
+        title: string;
+        type: string;
         content: string;
         publisher: string;
         createdAt: Date;
@@ -590,19 +596,23 @@ export class AdminService {
     };
   }
 
-  async announce(content: string, publisher: string) {
+  async announce(title: string, type: string, content: string, publisher: string) {
     const created = await this.extendedPrisma.announcement.create({
       data: {
+        title,
+        type,
         content,
         publisher: publisher || "admin"
       }
     });
 
     return {
-      noticeId: created.noticeId.toString(),
+      id: created.noticeId.toString(),
+      title: created.title,
+      type: created.type,
       content: created.content,
-      publisher: created.publisher,
-      createdAt: created.createdAt.toISOString()
+      publishedBy: created.publisher,
+      publishedAt: created.createdAt.toISOString()
     };
   }
 
@@ -613,10 +623,12 @@ export class AdminService {
     });
 
     return list.map((item) => ({
-      noticeId: item.noticeId.toString(),
+      id: item.noticeId.toString(),
+      title: item.title,
+      type: item.type,
       content: item.content,
-      publisher: item.publisher,
-      createdAt: item.createdAt.toISOString()
+      publishedBy: item.publisher,
+      publishedAt: item.createdAt.toISOString()
     }));
   }
 
@@ -665,6 +677,49 @@ export class AdminService {
     return {
       captainId: Number(updated.userId),
       level: updated.captainLevel
+    };
+  }
+
+  async tasks() {
+    const list = await this.prisma.bountyTask.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+    return list.map((item) => ({
+      taskId: Number(item.taskId),
+      title: item.title,
+      points: Number(item.points),
+      status: item.status,
+      difficulty: item.difficulty
+    }));
+  }
+
+  async submissions() {
+    const list = await this.prisma.taskSubmission.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+    return list.map((item) => ({
+      submissionId: Number(item.submissionId),
+      userId: Number(item.userId),
+      taskId: Number(item.taskId),
+      proof: item.proof || "",
+      status: item.status,
+      createdAt: item.createdAt.toISOString()
+    }));
+  }
+
+  async reviewSubmission(submissionId: number, decision: "approve" | "reject") {
+    const status = decision === "approve" ? "APPROVED" : "REJECTED";
+    // TODO: Ideally we should award points if approved
+    const updated = await this.prisma.taskSubmission.update({
+      where: { submissionId: BigInt(submissionId) },
+      data: { status: status as SubmissionStatus }
+    });
+    return {
+      submissionId: Number(updated.submissionId),
+      status: updated.status
     };
   }
 }

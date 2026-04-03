@@ -124,7 +124,12 @@ export class AdminController {
   @Post("announce")
   async announce(@Body() payload: PublishAnnouncementDto) {
     return ok(
-      await this.adminService.announce(payload.content, payload.publisher || "admin"),
+      await this.adminService.announce(
+        payload.title,
+        payload.type,
+        payload.content,
+        payload.publisher || "admin"
+      ),
       "Announcement published"
     );
   }
@@ -144,6 +149,27 @@ export class AdminController {
     return ok(
       await this.adminService.updateCaptainLevel(Number(id), payload.level as CaptainLevel),
       "Captain level updated"
+    );
+  }
+
+  @Get("tasks")
+  async tasks() {
+    return ok(await this.adminService.tasks());
+  }
+
+  @Get("submissions")
+  async submissions() {
+    return ok(await this.adminService.submissions());
+  }
+
+  @Put("submissions/:id/review")
+  async reviewSubmission(
+    @Param("id") id: string,
+    @Body() payload: { decision: "approve" | "reject" }
+  ) {
+    return ok(
+      await this.adminService.reviewSubmission(Number(id), payload.decision),
+      "Submission reviewed"
     );
   }
 }

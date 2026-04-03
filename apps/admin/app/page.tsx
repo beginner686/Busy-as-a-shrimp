@@ -61,7 +61,7 @@ export default function AdminHomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [sessionReady, setSessionReady] = useState(false);
-  const [stats] = useState<AdminStats | null>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
@@ -89,7 +89,16 @@ export default function AdminHomePage() {
       return;
     }
     setSessionReady(true);
-    setLoading(false);
+
+    import("../src/api").then(({ getAdminApi }) => {
+      getAdminApi()
+        .stats()
+        .then((data) => {
+          setStats(data);
+        })
+        .catch((err) => console.error("获取统计数据失败", err))
+        .finally(() => setLoading(false));
+    });
   }, [router]);
 
   if (!sessionReady) {

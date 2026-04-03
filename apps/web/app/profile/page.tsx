@@ -188,7 +188,7 @@ export default function ProfilePage() {
     }
   }
 
-  async function verifyRealNameMock() {
+  async function verifyRealName() {
     const name = realName.trim();
     const card = idCard.trim();
 
@@ -204,14 +204,23 @@ export default function ProfilePage() {
     setMessage("");
     setVerifying(true);
     try {
-      await sleep(1500);
-      setRealNameVerified(true);
-      setVerifyDialogOpen(false);
-      setRealName("");
-      setIdCard("");
+      const res = await getUserApi().verifyIdentity({ idNumber: card, name });
+      if (res.success) {
+        setRealNameVerified(true);
+        setVerifyDialogOpen(false);
+        setRealName("");
+        setIdCard("");
+        toast({
+          title: "实名校验通过",
+          description: "认证状态已更新。"
+        });
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "请求异常";
       toast({
-        title: "实名校验通过",
-        description: "认证状态已更新。"
+        title: "实名校验失败",
+        description: message,
+        variant: "destructive"
       });
     } finally {
       setVerifying(false);
@@ -685,11 +694,11 @@ export default function ProfilePage() {
             <DialogFooter>
               <button
                 type="button"
-                onClick={() => void verifyRealNameMock()}
+                onClick={() => void verifyRealName()}
                 disabled={verifying}
                 className="inline-flex min-w-[200px] items-center justify-center rounded-xl bg-cyan-500 px-6 py-3 font-semibold tracking-wide text-black shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all hover:-translate-y-0.5 hover:bg-cyan-400 hover:shadow-[0_0_25px_rgba(6,182,212,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {verifying ? "比对中..." : "调用公安网比对 (Mock)"}
+                {verifying ? "比对中..." : "提交实名"}
               </button>
             </DialogFooter>
           </DialogContent>

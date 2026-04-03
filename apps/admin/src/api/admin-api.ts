@@ -60,6 +60,23 @@ export type CaptainLevel = "normal" | "advanced" | "gold";
 // ── 公告 ──────────────────────────────────────────────
 export type AnnouncementType = "notice" | "activity" | "warning";
 
+export interface AdminBountyTask {
+  taskId: number;
+  title: string;
+  points: number;
+  status: string;
+  difficulty: string;
+}
+
+export interface AdminSubmission {
+  submissionId: number;
+  userId: number;
+  taskId: number;
+  proof: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface AdminAnnouncement {
   id: string;
   title: string;
@@ -176,6 +193,9 @@ export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "pos
     announce(dto: CreateAnnouncementDto): Promise<AdminAnnouncement> {
       return client.post<AdminAnnouncement>("/admin/announce", { body: dto });
     },
+    announcements(): Promise<AdminAnnouncement[]> {
+      return client.get<AdminAnnouncement[]>("/admin/announcements");
+    },
 
     // 匹配记录
     matches(): Promise<AdminMatchRecord[]> {
@@ -206,6 +226,23 @@ export function createAdminApi(client: Pick<HttpClientLike, "get" | "put" | "pos
     },
     deleteDictData(dictDataId: number): Promise<{ dictDataId: number }> {
       return client.delete<{ dictDataId: number }>(`/admin/dict/data/${dictDataId}`);
+    },
+
+    // 任务与审核
+    tasks(): Promise<AdminBountyTask[]> {
+      return client.get<AdminBountyTask[]>("/admin/tasks");
+    },
+    submissions(): Promise<AdminSubmission[]> {
+      return client.get<AdminSubmission[]>("/admin/submissions");
+    },
+    reviewSubmission(
+      id: number,
+      decision: "approve" | "reject"
+    ): Promise<{ submissionId: number; status: string }> {
+      return client.put<{ submissionId: number; status: string }>(
+        `/admin/submissions/${id}/review`,
+        { body: { decision } }
+      );
     }
   };
 }

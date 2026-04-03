@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getAdminApi } from "../../src/api";
 import type { AdminAnnouncement, AnnouncementType } from "../../src/api/admin-api";
 import styles from "../page.module.css";
@@ -47,6 +47,13 @@ export default function AnnouncementsPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
   // 本地维护公告列表（先展示乐观更新，API 成功后持久化）
   const [announcements, setAnnouncements] = useState<AdminAnnouncement[]>([]);
+
+  useEffect(() => {
+    getAdminApi()
+      .announcements()
+      .then((data) => setAnnouncements(data))
+      .catch((err) => console.error("加载公告失败", err));
+  }, []);
 
   async function handlePublish(e: React.FormEvent) {
     e.preventDefault();

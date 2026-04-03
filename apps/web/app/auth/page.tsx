@@ -447,6 +447,51 @@ export default function AuthPage() {
                   </Button>
                 </form>
               </Form>
+
+              {/* 微信 OAuth 模拟登录区块 */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-white/5" />
+                  <p className="text-[10px] text-zinc-600 font-bold tracking-wider uppercase">
+                    第三方快捷通道
+                  </p>
+                  <div className="h-px flex-1 bg-white/5" />
+                </div>
+
+                <Button
+                  type="button"
+                  className="group relative h-14 w-full bg-[#07C160]/90 text-white font-bold tracking-wider rounded-2xl px-6 shadow-[0_0_20px_rgba(7,193,96,0.2)] hover:shadow-[0_0_40px_rgba(7,193,96,0.4)] hover:bg-[#07C160] active:scale-[0.98] transition-all overflow-hidden"
+                  disabled={submitting}
+                  onClick={async () => {
+                    setSubmitting(true);
+                    toast({
+                      title: "微信授权模拟中...",
+                      description: "正在模拟 OAuth 回调流程（微信资质待审批）。"
+                    });
+                    await new Promise((r) => setTimeout(r, 1500));
+                    setLogin({
+                      token: "mock_wechat_token_" + Date.now(),
+                      phone: "WeChat用户"
+                    });
+                    toast({
+                      title: "微信登录成功（模拟）",
+                      description: "正在跳转至主页面..."
+                    });
+                    router.replace(redirectTo);
+                    setSubmitting(false);
+                  }}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden>
+                      <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.534c0 2.22 1.174 4.22 3.016 5.591l-.755 2.278 2.644-1.359c.927.253 1.908.39 2.924.39.313 0 .623-.015.929-.043a5.747 5.747 0 0 1-.242-1.645c0-3.637 3.529-6.588 7.882-6.588.35 0 .695.021 1.036.06C16.874 4.813 13.117 2.188 8.691 2.188zm-2.83 4.086c.578 0 1.047.468 1.047 1.046s-.469 1.047-1.047 1.047a1.047 1.047 0 1 1 0-2.093zm5.376 0c.578 0 1.047.468 1.047 1.046s-.469 1.047-1.047 1.047a1.047 1.047 0 1 1 0-2.093zM16.398 9.17c-3.838 0-6.95 2.622-6.95 5.856 0 3.234 3.112 5.856 6.95 5.856.697 0 1.37-.095 2-.27l2.17 1.113-.614-1.86C21.646 18.584 23.348 16.8 23.348 15.026c0-3.234-3.112-5.856-6.95-5.856zm-2.371 3.393c.48 0 .87.39.87.87a.87.87 0 0 1-.87.87.87.87 0 0 1-.87-.87c0-.48.39-.87.87-.87zm4.742 0c.48 0 .87.39.87.87a.87.87 0 0 1-.87.87.87.87 0 0 1-.87-.87c0-.48.39-.87.87-.87z" />
+                    </svg>
+                    微信快捷登录（模拟）
+                  </span>
+                </Button>
+                <p className="text-center text-[10px] text-zinc-700 font-mono">
+                  ⓘ 微信 OAuth 资质审批中，当前为本地模拟登录
+                </p>
+              </div>
             </TabsContent>
 
             <TabsContent value="admin" className="mt-0 outline-none">

@@ -80,12 +80,6 @@ function getLevelLabel(level: MemberLevel): string {
   return "FREE";
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
 export default function MemberPage() {
   const memberLevel = useUserStore((state) => state.memberLevel);
   const setMemberLevel = useUserStore((state) => state.setMemberLevel);
@@ -96,13 +90,26 @@ export default function MemberPage() {
       return;
     }
     setProcessingTier(nextLevel);
-    await sleep(1500);
-    setMemberLevel(nextLevel);
-    setProcessingTier(null);
-    toast({
-      title: "模拟支付成功",
-      description: "您的账户已升级。"
-    });
+
+    try {
+      const { getUserApi } = await import("@/api");
+      await getUserApi().subscribePlan(nextLevel);
+
+      setMemberLevel(nextLevel);
+      toast({
+        title: "支付/升级成功",
+        description: `您的账户已升级至 ${nextLevel}。`
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "您可能需要先登录或者当前网络不稳定。";
+      toast({
+        title: "升级失败",
+        description: message,
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingTier(null);
+    }
   }
 
   return (

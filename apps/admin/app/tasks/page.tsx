@@ -26,45 +26,26 @@ export default function TasksAdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mocking API call for demonstration. In real world, use fetch to /tasks and /admin/submissions
-    setTimeout(() => {
-      setTasks([
-        {
-          taskId: 1,
-          title: "在社交媒体分享平台海报",
-          points: 50,
-          status: "PUBLISHED",
-          difficulty: "EASY"
-        },
-        {
-          taskId: 2,
-          title: "提交一个有效的资源建议",
-          points: 100,
-          status: "PUBLISHED",
-          difficulty: "MEDIUM"
-        }
-      ]);
-      setSubmissions([
-        {
-          submissionId: 1001,
-          userId: 105,
-          taskId: 1,
-          proof: "截图链接: http://example.com/proof1.jpg",
-          status: "PENDING",
-          createdAt: "2026-03-30 15:20"
-        },
-        {
-          submissionId: 1002,
-          userId: 110,
-          taskId: 1,
-          proof: "已经分享到朋友圈",
-          status: "PENDING",
-          createdAt: "2026-03-30 16:45"
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
+    import("../../src/api").then(({ getAdminApi }) => {
+      Promise.all([getAdminApi().tasks(), getAdminApi().submissions()])
+        .then(([tasksData, submissionsData]) => {
+          setTasks(tasksData);
+          setSubmissions(submissionsData);
+        })
+        .catch((err) => console.error("加载任务或提交失败", err))
+        .finally(() => setLoading(false));
+    });
   }, []);
+
+  async function handleReview(id: number, decision: "approve" | "reject") {
+    try {
+      const { getAdminApi } = await import("../../src/api");
+      await getAdminApi().reviewSubmission(id, decision);
+      setSubmissions((prev) => prev.filter((sub) => sub.submissionId !== id));
+    } catch (err) {
+      console.error("审核失败", err);
+    }
+  }
 
   return (
     <div style={{ background: "#0a0c10", minHeight: "100vh", color: "#fff" }}>
@@ -202,6 +183,7 @@ export default function TasksAdminPage() {
                         <td style={{ padding: "12px 15px" }}>
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button
+                              onClick={() => void handleReview(sub.submissionId, "approve")}
                               style={{
                                 background: "#00e5a0",
                                 border: "none",
@@ -215,6 +197,7 @@ export default function TasksAdminPage() {
                               通过
                             </button>
                             <button
+                              onClick={() => void handleReview(sub.submissionId, "reject")}
                               style={{
                                 background: "rgba(255,77,109,0.2)",
                                 border: "1px solid rgba(255,77,109,0.5)",

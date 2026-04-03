@@ -107,6 +107,8 @@ model Content {
 
 model Announcement {
   noticeId  BigInt   @id @default(autoincrement()) @map("notice_id")
+  title     String   @default("未命名公告") @db.VarChar(100)
+  type      String   @default("notice") @db.VarChar(20)
   content   String   @db.Text
   publisher String   @default("admin") @db.VarChar(50)
   createdAt DateTime @default(now()) @map("created_at")
